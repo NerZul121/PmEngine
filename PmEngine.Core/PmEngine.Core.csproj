@@ -11,7 +11,10 @@
 		<Authors>NerZul121</Authors>
 		<Company>pmgames.studio</Company>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<Title>Engine for text-base apps or chat-bots</Title>
+		<Title>Engine for text-based apps or chat-bots</Title>
+		<RepositoryUrl>https://github.com/NerZul121/PmEngine</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>bot, chat</PackageTags>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

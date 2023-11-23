@@ -2,11 +2,10 @@
 	<PropertyGroup>
 		<Company>PmGames Studio</Company>
 		<Copyright>Copyright © PmGames Studio $([System.DateTime]::Now.ToString(`yyyy`))</Copyright>
-
 		<FileVersion>1.0.$([System.DateTime]::Now.ToString(`MMdd`)).$([System.DateTime]::Now.ToString(`HHmm`))</FileVersion>
 		<AssemblyVersion>$(FileVersion)</AssemblyVersion>
 		<PackageVersion>$(FileVersion)</PackageVersion>
-		<Version>$(FileVersion)</Version>		
+		<Version>$(FileVersion)</Version>
 		<AssemblyVersion>$(FileVersion)</AssemblyVersion>
 	</PropertyGroup>
 </Project>
