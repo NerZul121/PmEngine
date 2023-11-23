@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<PackageId>PmEngine.Core</PackageId>
+		<PackageIconUrl>http://zzz-korp.3dn.ru/PmCore.png</PackageIconUrl>
+		<Description>Движок для приложений, работающих в текстовом интерфейсе</Description>
+		<Authors>NerZul121</Authors>
+		<Company>pmgames.studio</Company>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Title>Engine for text-base apps or chat-bots</Title>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	  <DebugType>embedded</DebugType>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	  <DebugType>embedded</DebugType>
+	</PropertyGroup>
+	
+	<Import Project="..\VersionBuilder.props" />
+	
+	<ItemGroup>
+	  <Compile Remove="EventHandlers\**" />
+	  <EmbeddedResource Remove="EventHandlers\**" />
+	  <None Remove="EventHandlers\**" />
+	</ItemGroup>
+	
+	<ItemGroup>
+	  <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.*" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.*">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="7.0.*" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="7.0.*" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.*" />
+	  <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.*" />
+	</ItemGroup>
+
+</Project>
