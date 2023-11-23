@@ -9,7 +9,9 @@
 
 ## Рекомендуемые модули
 
-...
+[https://github.com/NerZul121/PmEngine.Telegram](PmEngine.Telegram) — Модуль для работы с Telegram  
+
+[https://github.com/NerZul121/PmEngine.Telegram](PmEngine.VK) — Модуль для работы с VK
 
 ## Список исползуемых переменных среды
 
