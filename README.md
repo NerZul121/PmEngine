@@ -6,214 +6,95 @@
 
 Это ядро движка, предназначенного для текстовых интерактивных приложений, например для ботов Telegram, других мессенеджеров, браузерных приложений или просто консоли.
 Движок умеет обрабатывать действия пользователя, управлять ими, выполнять команды, поддерживает модульность.
-Демонстрация движка: текстовая полноценная ММОРПГ в Телеграмм - https://t.me/PmEngineTestBot
+
+## Рекомендуемые модули
+
+...
 
 ## Список исползуемых переменных среды
 
-В движке используются следующие переменные среды:
+В ядре используются следующие переменные среды:
 ```
 PROVIDER_TYPE = INT от 0 до 2, где 0 - PostgreSQL, 1 - SQLite, 2 - InMemory (SQLite)
 CONNECTION_STRING = Строка подключения к БД, которая будет использована в BaseContext. Должна соответствовать провайдеру, указанному в PROVIDER_TYPE
 ```
 
-## Делаем Hello World в консоли
+# Основы
 
-\#1 Создаем консольный проект в Visual Studio на .NET 7.0
+## Регистрация в DI
 
-\#2 Добавляем ссылку на PmEngine.Core
-
-\#3 Создаем класс модуля, наследующий BaseModuleRegistrator. Он отвечает за регистрацию модуля внутри движка
+Для работы движка в вашем приложении его сперва необходимо добавить в DI контейнер:
 
 ```
-using PmEngine.Core.BaseClasses;
-
-namespace PmEngine.Examples
+builder.Services.AddPMEngine((e) =>
 {
-    internal class ExampleModule : BaseModuleRegistrator
-    {
-    }
-}
+    e.Properties.InitializationAction = typeof(HelloWorldAction); // Указываем стартовое действие пользователя
+    e.Properties.DataProvider = DataProvider.PG; // Указываем тип соединения, если не хотим исползовать переменные среды
+});
 ```
 
-\#4 Берем [IOutputManger](https://gitlab.battleofthedemigod.ru/gitlab-instance-bb639d92/pmengine.examples) из примеров / или делаем его самостоятельно
-
+После чего его нужно сконфигурировать:
 ```
-public class ConsoleOutput : IOutputManager
-{
-	// ... Реализация через Console.WriteLine()
-}
+var app = builder.Build();
+app.ConfigureEngine();
 ```
 
-\#5 В классе Programm.cs нужно указать используемый провайдер БД, реализацию IOutputManager, добавить созданный модуль в движок и вызывать метод конфигурирования:
+## Работа с вводом и выводом
 
+### Ввод
+
+Ввод информации в движок можно осуществлять откуда угодно. Для этого достаточно взять пользователя и вызвать у него ActionProcess() или использовать следующую конструкцию:
 ```
-#region configure
-// Устанавливаем тип соединения с БД как InMemory
-Engine.Properties.DataProvider = DataProvider.InMemory;
-
-// Добавляем Output
-Engine.Services.AddSingleton<IOutputManager>(new ConsoleOutput());
-
-// Добавляем модуль
-Engine.Modules.Add(new ExampleModule());
-
-//Конфигурируем движок
-Engine.Configure();
-#endregion
+var processor = serviceProvider.GetRequiredService<IEngineProcessor>();
+await processor.ActionProcess(session.InputAction, session, session.InputAction.Arguments);
 ```
 
-\#6 В Programm.cs нужно добавить функционал действий. Пример можно взять [тут]() или написать самому:
+### Вывод
 
-```
-//Регистрация пользователя
-long userId = 0;
-UserEntity? user = null;
+Для вывода информации используется сервис ``IOutputManager``. Изначально он отсутсвует в движке и предполагается, что он будет добавлен внешними подключаемыми модулями.  
+Чтобы с помощью него отправить что-то пользователю, достаточно вызвать метод ``IUserSession.Output.ShowContent()``.  
+У каждого пользователя свой экземпляр IOutputManager. Так же для того, чтобы взять конкретную реализацию - достаточно вызвать ``IUserSession.GetOutput<TOutput>()``.
 
-using (var context = MainProcess.GetContext())
-{
-    Console.Write("Введите ваше имя: ");
-    var name = Console.ReadLine() ?? "userName";
+## Работа с данными
 
-    user = context.Set<UserEntity>().FirstOrDefault(p => p.Name.ToLower() == name.ToLower());
-
-    // Если такого нет, то создаем
-    if (user is null)
-    {
-        user = new UserEntity() { Name = name };
-        await context.Set<UserEntity>().AddAsync(user);
-        await context.SaveChangesAsync();
-    }
-}
-
-userId = user.Id;
-
-// Процесс считывания введенного значения
-while (true)
-{
-    var ps = await ServerSession.GetUserSession(userId);
-
-    if (ps.NextActions.Any())
-        await MainProcess.ActionProcess((ActionWrapper)await SelectFrom(ps.NextActions, ps), userId);
-
-    Task.Delay(100).Wait();
-}
-
-// Выбор из предложенных действий
-async Task<object> SelectFrom<T>(T select, UserSession ps) where T : IEnumerable<ActionWrapper>
-{
-    var result = MainProcess.Output.ActionsToStrings(select);
-
-    var actN = await GetActionNumber(ps);
-
-    return ServerSession.GetUserSession(userId).Result.NextActions[actN];
-}
-
-// Получение введенного пользователем выбора
-async Task<int> GetActionNumber(UserSession ps)
-{
-    int i;
-    string ms = Console.ReadLine() ?? "";
-
-    while (!int.TryParse(ms, out i) || i >= ps.NextActions.Count())
-    {
-        if (ps.InputAction != null)
-            await MainProcess.MakeAction(ps.Id, ps.InputAction);
-
-        ms = Console.ReadLine() ?? "";
-    }
-
-    return i;
-}
-```
-
-\#7 При запуске мы получим ошибку, что не указано инициализирующее пользователя действие. Надо его создать. Создаем папку Actions и добавляем туда новый класс HelloWorldAction, реализующий IAction
-
-```
-internal class HelloWorldAction : IAction
-{
-    public async Task<INextActionsMarkup?> DoAction(ActionWrapper currentAction, long userId, Dictionary<string, object> arguments, string inputData = "")
-    {
-		// Получение активной сессии пользователя
-        var userSession = await ServerSession.GetUserSession(userId);
-		
-		// Добавляем на вывод сообщение "Привет, %UserName%!". Обратите внимание на использование CachedData!
-        MainProcess.Output.AddToOutput($"Привет, {userSession.CachedData.Name}!", userId);
-
-		// Создание разметки кнопок, которая вернется пользователю
-        var result = new SingleMarkup();
-		
-		// Добавление пользователю кнопки "Привет!", которая запустит выполнение действия HelloWorldAction (которое выполняется сейчас)
-        result.Add("Привет!", typeof(HelloWorldAction));
-
-        return result;
-            // Можно сократить до return new SingleMarkup(new ActionWrapper[] { new ActionWrapper("Привет!", typeof(HelloWorldAction)) });
-    }
-}
-```
-
-\#8 После этого нужно указать созданное нами действие как инициализирующее. Для этого нужно добавить его в ServerProperties.InitializationAction. Сделать это можно там же в Programm.cs на этапе заполнения данных движка, добавив строчку
-
-```
-Engine.Properties.InitializationAction = typeof(HelloWorldAction);
-```
-
-Либо указав это в классе-регистраторе модуля, сделав override метода AdditionalRegistrate
-
-```
-public override void AdditionalRegistrate(ServiceCollection services, IEnumerable<Type> allTypes)
-    {
-        ServerProperties.InitializationAction = typeof(HelloWorldAction);
-    }
-```
-
-\#9 Готово! Осталось запустить приложение и постоянно приветствовать :)
-
-## Как добавить свои сущности
-
-Для добавления своих сущностей можно использовать следующие варианты:
+Для работы с данными есть два пути:
 
 * Использовать BaseContext
 * Использовать свой DataContext
 
 Теперь подробнее о каждом.
 
-## BaseContext
+### BaseContext
 
-BaseContext - это универсальный контекст, который использует для подключения данные из переменных среды. Он автоматически подгружает в себя все зарегистрированные типы сущностей, которые реализуют интерфейс IDataEntity. Для создания миграций с ним потребуется создать дополнительный контекст, который наследует BaseContext, после чего можно делать миграцию.
+BaseContext - это универсальный контекст, который использует для подключения данные из переменных среды. Он автоматически подгружает в себя все зарегистрированные типы сущностей, которые реализуют интерфейс IDataEntity. Для создания миграций с ним потребуется создать дополнительный контекст, который наследует BaseContext, после чего можно делать миграцию.  
+**Важно!** При создании миграции убедитесь, что она НЕ конфликтует с имеющимися данными в БД. Для этого достаточно удалить все ссылки на UserEntity, UserLocalEntity и др.  
+Так же для успешного создания миграции у вашего контекста должен быть конструктор ``public MyContext(IEngineConfigurator? configurator = null) : base(configurator)``.
 
 Если принято решение использовать BaseContext, то необходимо указать параметры подключения в переменных среды (см используемые переменные среды) либо использвовать провайдер SQLite/InMemory (они не требуют заполнения переменных сред, SQLite имеет конфиг по умолчанию, InMemory в конфиге не нуждается)
-Далее все сущности, которые будут исползованы в проекте должны наследовать одну из следующих базовых сущностей:
+Далее все сущности, которые будут исползованы в проекте должны реализовывать интерфейс ``IDataEntity`` или наследовать базовый класс ``BaseEntity``.
 
-* BaseEntity - Базовая сущность с ID и наследованием IDataEntity
-* BaseNamedEntity - Базовая сущность с Name, наследующая BaseEntity
-* BaseDescriptedEntity - Базова сущность с Description, наследующая BaseNamedEntity
-
-При работе с контекстом нужно вызывать метод MainProcess.GetContext(), например:
-
+Для работы с таким контекстом необходимо использовать DI. Для этого уже реализован метод, открывающий контекст, выполняющий в нем действия, а после закрываюющий его.  
 ```
-using var context = MainProcess.GetContext();
-var user = context.Set<UserEntity>().AsNoTracking().First(u => u.Id == 1);
-```
-
-Если вы хотите использовать какой-либо кастомный контекст (например для подключения к MSSQL), но хотите использовать его как базовый, то создайте его, наследуйте BaseContext и укажите ему аттрибут Priority, который отвечает за приоритетность использования.
-
-```
-[Priority(10)]
-public class NewContext : BaseContext
+await user.Services.InContext(async (context) => 
 {
-}
+	DoSomthing ...
+});
 ```
 
-После чего добавьте его в список контектов:
+Если вы хотите комбинировать несколько контекстов, реализованных от BaseContext (например разные строки подключения, разделить контексты на ReadonlyContext и ReaadWriteCotnext) то вы можете использовать ``InContext<T>``  
 ```
-Engine.DataContexts.Add(typeof(NewContext));
+await user.Services.InContext<ReadonlyContext>(async (context) => 
+{
+	DoSomthing ...
+});
 ```
 
-При использовании нескольких контекстов метод MainProcess.GetContext() вернет тот контекст, число приоритета которого меньше всего. Т.е. если есть контекст с приоритетом 1 и контекст с приоритетом 2, то вернется контекст с приоритетом 1.
-Если вы хотите гарантированно получить контекст, который соответствует типу (или является его наследником), то используйте метод MainProcess.GetContext<TContext>(), который отработает так же, как и MainProcess.GetContext(), только с проверкой на наследование/соответствование типу. Это может быть полезно при работе с несколькими разными контекстами.
-MainProcess.GetContext<T>() работает на основе интерфейса IDataContext, но обращается к списку контекстов Engine.DataContexts, поэтому регистрация контекстов в этом списке обязательна.
+Все свои контексты необходимо добавить в DI в формате transient как реализацию IDataContext.  
+```
+services.AddTransient(typeof(IDataContext), typeof(ReadonlyContext));
+```
 
-## Свой контекст, но не BaseContext
+### Свой контекст, но не BaseContext
 
 Вы можете использовать сколько угодно контекстов, как угодно и каких угодно.
 Ядро движка по прежнему будет работать в пределах BaseContext, но внутри ваших модулей вы абсолютно свободны.
