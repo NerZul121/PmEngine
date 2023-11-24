@@ -7,8 +7,10 @@
 Это ядро движка, предназначенного для текстовых интерактивных приложений, например для ботов Telegram, других мессенеджеров, браузерных приложений или просто консоли.
 Движок умеет обрабатывать действия пользователя, управлять ими, выполнять команды, поддерживает модульность.
 
-![Nuget](https://img.shields.io/nuget/v/PmEngine.Core?label=PmEngine.Core)  
-![Nuget](https://img.shields.io/nuget/v/PmEngine.Telegram?label=PmEngine.Telegram)  
+[![Nuget](https://img.shields.io/nuget/v/PmEngine.Core?label=PmEngine.Core)](https://www.nuget.org/packages/PmEngine.Core)  
+[![Nuget](https://img.shields.io/nuget/v/PmEngine.Telegram?label=PmEngine.Telegram)](https://www.nuget.org/packages/PmEngine.Telegram)  
+[![Nuget](https://img.shields.io/nuget/v/PmEngine.Vk?label=PmEngine.Vk)](https://www.nuget.org/packages/PmEngine.Vk)  
+
 [![Telegram Chat](https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/PmEngine)  
 
 [https://github.com/NerZul121/PmEngine.Telegram](PmEngine.Telegram) — Модуль для работы с Telegram  
