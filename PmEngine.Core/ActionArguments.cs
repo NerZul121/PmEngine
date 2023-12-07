@@ -58,6 +58,17 @@ namespace PmEngine.Core
             }
         }
 
+        public T Cast<T>(IActionArguments args) where T : IActionArguments, new()
+        {
+            var result = new T();
+
+            var dict = args.ToDict();
+            foreach (var item in dict)
+                result.Set(item.Key, item.Value);
+
+            return result;
+        }
+
         /// <summary>
         /// Класс аргументов
         /// </summary>

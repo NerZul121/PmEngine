@@ -109,10 +109,7 @@ namespace PmEngine.Core.SessionElements
                 NextActions = sessionData.NextActions(services);
             }
             else
-            {
-                NextActions = new BaseMarkup(new List<ActionWrapper>() { new ActionWrapper("Initialization", engine.Properties.InitializationAction ?? throw new Exception("Не указано действие инициализации пользователя."), engine.Properties.StartArguments) });
-                CurrentAction = NextActions.GetFloatNextActions().First();
-            }
+                CurrentAction = new ActionWrapper("Initialization", engine.Properties.InitializationAction ?? throw new Exception("Не указано действие инициализации пользователя."), engine.Properties.StartArguments);
 
             services.GetRequiredService<IEngineProcessor>().MakeEvent<IUserSesseionInitializeEventHandler>(async (handler) => await handler.Handle(this)).Wait();
         }

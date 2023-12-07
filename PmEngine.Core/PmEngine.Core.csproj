@@ -6,7 +6,7 @@
 		<Nullable>enable</Nullable>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageId>PmEngine.Core</PackageId>
-		<PackageIconUrl>http://zzz-korp.3dn.ru/PmCore.png</PackageIconUrl>
+		<Icon>http://zzz-korp.3dn.ru/PmCore.png</Icon>
 		<Description>Движок для приложений, работающих в текстовом интерфейсе</Description>
 		<Authors>NerZul121</Authors>
 		<Company>pmgames.studio</Company>
