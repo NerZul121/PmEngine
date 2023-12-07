@@ -60,6 +60,9 @@ namespace PmEngine.Core
 
         public T Cast<T>(IActionArguments args) where T : IActionArguments, new()
         {
+            if(args is T)
+                return (T)args;
+
             var result = new T();
 
             var dict = args.ToDict();
