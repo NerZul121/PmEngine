@@ -58,18 +58,28 @@ namespace PmEngine.Core
             }
         }
 
-        public T Cast<T>(IActionArguments args) where T : IActionArguments, new()
+        /// <summary>
+        /// Преобразование IActionArguments к другому типу
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public T Cast<T>() where T : IActionArguments, new()
         {
-            if(args is T)
-                return (T)args;
-
             var result = new T();
 
-            var dict = args.ToDict();
-            foreach (var item in dict)
-                result.Set(item.Key, item.Value);
+            var dict = ToDict();
+            result.Set(dict);
 
             return result;
+        }
+
+        /// <summary>
+        /// Установка аргументов
+        /// </summary>
+        /// <param name="args"></param>
+        public void Set(Dictionary<string, object> args)
+        {
+            Arguments = args;
         }
 
         /// <summary>
