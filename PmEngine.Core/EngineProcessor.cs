@@ -1,12 +1,11 @@
-﻿using PmEngine.Core.BaseMarkups;
-using PmEngine.Core.Interfaces;
+﻿using PmEngine.Core.Interfaces;
 using PmEngine.Core.Interfaces.Events;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using PmEngine.Core.Extensions;
-using PmEngine.Core.Entities;
 using System.Text.Json;
 using PmEngine.Core.SessionElements;
+using PmEngine.Core.Actions;
 
 namespace PmEngine.Core
 {
@@ -103,7 +102,11 @@ namespace PmEngine.Core
             }
             catch (Exception ex)
             {
+                var args = new ActionArguments(new() { { "exception", ex } });
                 _logger.LogError($"Ошибка исполнения {action}: {ex}", userSession.CachedData);
+                userSession.OutputContent = "";
+                userSession.Media = null;
+                await ActionProcess(new ActionWrapper("ExceptionAction", _services.GetRequiredService<IEngineConfigurator>().Properties.ExceptionAction ?? typeof(ExceptionAction)), userSession, args);
             }
             finally
             {

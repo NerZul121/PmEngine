@@ -1,4 +1,5 @@
-﻿using PmEngine.Core.Enums;
+﻿using PmEngine.Core.Actions;
+using PmEngine.Core.Enums;
 using PmEngine.Core.Interfaces;
 
 namespace PmEngine.Core
@@ -42,5 +43,15 @@ namespace PmEngine.Core
         /// Независимость от сессий
         /// </summary>
         public bool EnableStateless { get; set; } = true;
+        
+        /// <summary>
+        /// Действие, которое выполнится у пользователя в случае неотловленной ошибки.
+        /// </summary>
+        public Type? ExceptionAction { get; set; } = typeof(ExceptionAction);
+
+        /// <summary>
+        /// Алгоритм выбора дефолтного аутпута
+        /// </summary>
+        public List<Func<IUserSession, IOutputManager>> DefaultOutputSetter { get; set; } = new ();
     }
 }

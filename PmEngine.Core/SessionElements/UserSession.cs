@@ -1,9 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using PmEngine.Core.BaseClasses;
-using PmEngine.Core.BaseMarkups;
 using PmEngine.Core.Entities;
-using PmEngine.Core.Extensions;
 using PmEngine.Core.Interfaces;
 using PmEngine.Core.Interfaces.Events;
 using System.Text.Json;
@@ -165,8 +163,18 @@ namespace PmEngine.Core.SessionElements
         {
             if (DefaultOutput is null)
             {
-                var output = Services.GetRequiredService<IOutputManager>();
-                return output;
+                var funcs = Services.GetRequiredService<IEngineConfigurator>().Properties.DefaultOutputSetter;
+                foreach(var func in funcs)
+                {
+                    var output = func(this);
+                    if(output != null)
+                    {
+                        DefaultOutput = output;
+                        break;
+                    }
+                }
+
+                DefaultOutput = Services.GetRequiredService<IOutputManager>();
             }
 
             return DefaultOutput;

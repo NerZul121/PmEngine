@@ -67,8 +67,7 @@ namespace PmEngine.Core
         {
             var result = new T();
 
-            var dict = ToDict();
-            result.Set(dict);
+            result.Set(ToDict());
 
             return result;
         }
