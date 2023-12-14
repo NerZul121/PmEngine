@@ -207,7 +207,7 @@ namespace PmEngine.Core.SessionElements
         {
             await Services.GetRequiredService<IContextHelper>().InContext(async (context) =>
             {
-                var user = await context.Set<UserEntity>().FirstAsync(p => p.Id == Id);
+                var user = await Reload(context);
                 user.LastOnlineDate = DateTime.Now;
                 await context.SaveChangesAsync();
             });

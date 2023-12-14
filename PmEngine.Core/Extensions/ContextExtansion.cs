@@ -40,5 +40,10 @@ namespace PmEngine.Core.Extensions
         {
             await services.GetRequiredService<IContextHelper>().InContext(contextType, func);
         }
+
+        public static async Task<T> InContext<T>(this IServiceProvider services, Func<BaseContext, Task<T>> func)
+        {
+            return await services.GetRequiredService<IContextHelper>().InContext(func);
+        }
     }
 }

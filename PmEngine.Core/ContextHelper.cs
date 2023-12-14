@@ -57,5 +57,35 @@ namespace PmEngine.Core
                 throw;
             }
         }
+
+        public async Task<T> InContext<T>(Type contextType, Func<BaseContext, Task<T>> action)
+        {
+            try
+            {
+                using var scope = _services.CreateScope();
+                using var context = (BaseContext)scope.ServiceProvider.GetServices<IDataContext>().First(c => c.GetType() == contextType);
+                return await action(context);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                throw;
+            }
+        }
+
+        public async Task<T> InContext<T>(Func<BaseContext, Task<T>> action)
+        {
+            try
+            {
+                using var scope = _services.CreateScope();
+                using var context = scope.ServiceProvider.GetServices<IDataContext>().First(c => c.GetType() == typeof(BaseContext)) as BaseContext;
+                return await action(context);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                throw;
+            }
+        }
     }
 }
