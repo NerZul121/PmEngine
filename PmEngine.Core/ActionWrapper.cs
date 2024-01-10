@@ -13,46 +13,60 @@ namespace PmEngine.Core
         /// </summary>
         public string GUID { get; } = Guid.NewGuid().ToString();
 
-		/// <summary>
-		/// Видно-ли действие пользователю
-		/// </summary>
-		public bool Visible { get; set; } = true;
+        /// <summary>
+        /// Видно-ли действие пользователю
+        /// </summary>
+        public bool Visible { get; set; } = true;
 
-		/// <summary>
-		/// Список следующих действий
-		/// </summary>
-		public INextActionsMarkup NextActions { get; set; } = new BaseMarkup();
+        /// <summary>
+        /// Список следующих действий
+        /// </summary>
+        public INextActionsMarkup NextActions { get; set; } = new BaseMarkup();
 
-		/// <summary>
-		/// Отображаемое имя действия
-		/// </summary>
-		public string DisplayName { get; set; }
+        /// <summary>
+        /// Отображаемое имя действия
+        /// </summary>
+        public string DisplayName { get; set; }
 
-		/// <summary>
-		/// Класс действия, реализующий IAction
-		/// </summary>
-		public Type? ActionType { get; set; }
+        /// <summary>
+        /// Класс действия, реализующий IAction
+        /// </summary>
+        public Type? ActionType { get; set; }
 
-		/// <summary>
-		/// Текст экшена
-		/// </summary>
-		public string? ActionText { get; set; }
+        /// <summary>
+        /// Имя типа действия
+        /// </summary>
+        public string? ActionTypeName { get; set; }
 
-		/// <summary>
-		/// Аргументы
-		/// </summary>
-		public IActionArguments Arguments { get; set; } = new ActionArguments();
+        /// <summary>
+        /// Текст экшена
+        /// </summary>
+        public string? ActionText { get; set; }
+
+        /// <summary>
+        /// Аргументы
+        /// </summary>
+        public IActionArguments Arguments { get; set; } = new ActionArguments();
 
         /// <summary>
         /// Обертка для действия
         /// </summary>
         /// <param name="name"></param>
         /// <param name="actionClass"></param>
-        public ActionWrapper(string name, Type? actionClass = null)
-		{
-			DisplayName = name;
-			ActionType = actionClass;
-		}
+        public ActionWrapper(string name, Type actionClass)
+        {
+            DisplayName = name;
+            ActionType = actionClass;
+        }
+
+        /// <summary>
+        /// Обертка для действия
+        /// </summary>
+        /// <param name="name"></param>
+        public ActionWrapper(string name)
+        {
+            DisplayName = name;
+        }
 
         /// <summary>
         /// Обертка для действия
@@ -67,13 +81,41 @@ namespace PmEngine.Core
             Arguments = arguments;
         }
 
-		/// <summary>
-		/// Преобразование в строку (Data.Name)
-		/// </summary>
-		/// <returns></returns>
-		public override string ToString()
-		{
-			return DisplayName;
-		}
-	}
+        /// <summary>
+        /// Обертка для действия
+        /// </summary>
+        /// <param name="displayName"></param>
+        /// <param name="actionClass"></param>
+        /// <param name="arguments"></param>
+        public ActionWrapper(string displayName, string? actionClass, IActionArguments? arguments = null)
+        {
+            DisplayName = displayName;
+            ActionTypeName = actionClass;
+            Arguments = arguments ?? new ActionArguments();
+        }
+
+        /// <summary>
+        /// Преобразование в строку (Data.Name)
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return DisplayName;
+        }
+    }
+
+    /// <summary>
+    /// Сахарок для инициализации врапперов без typeof
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class ActionWrapper<T> : ActionWrapper where T : IAction
+    {
+        public ActionWrapper(string? name = "") : base(name, typeof(T))
+        {
+        }
+
+        public ActionWrapper(string name, IActionArguments args) : base(name, typeof(T), args)
+        {
+        }
+    }
 }

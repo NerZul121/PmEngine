@@ -17,11 +17,14 @@ namespace PmEngine.Core
     {
         private ILogger<EngineProcessor> _logger;
         private IServiceProvider _services;
+        private IEngineConfigurator _config;
 
-        public EngineProcessor(IServiceProvider services, ILogger<EngineProcessor> logger)
+        public EngineProcessor(IServiceProvider services, ILogger<EngineProcessor> logger, IEngineConfigurator config)
         {
             _logger = logger;
             _services = services;
+            _config = config;
+            Assembler.LibPaht = _config.Properties.LibStoragePath;
         }
 
         /// <summary>
@@ -47,22 +50,28 @@ namespace PmEngine.Core
 
                 IAction? iaction = null;
 
-                if (action.ActionType is null)
-                    result = action.NextActions;
+                await MakeEvent<IMakeActionBeforeEventHandler>((handler) => handler.Handle(userSession, action));
 
-                else if (action.ActionType.GetInterface("IAction") == null)
-                    throw new Exception(action.ActionType + " не реализует интерфейс IAction.");
-
+                if (_config.Properties.UseLibStorage)
+                {
+                    result = await Assembler.InAssembly(action, userSession);
+                }
                 else
                 {
-                    await MakeEvent<IMakeActionBeforeEventHandler>((handler) => handler.Handle(userSession, action));
+                    if (action.ActionType is null)
+                        result = action.NextActions;
+                    else if (action.ActionType.GetInterface("IAction") == null)
+                        throw new Exception(action.ActionType + " не реализует интерфейс IAction.");
 
-                    iaction = (IAction?)Activator.CreateInstance(action.ActionType);
+                    else
+                    {
+                        iaction = (IAction?)Activator.CreateInstance(action.ActionType);
 
-                    if (iaction is null)
-                        throw new Exception("Не удалось создать экшн " + action.ActionType);
+                        if (iaction is null)
+                            throw new Exception("Не удалось создать экшн " + action.ActionType);
 
-                    result = await iaction.DoAction(action, userSession, action.Arguments);
+                        result = await iaction.DoAction(action, userSession, action.Arguments);
+                    }
                 }
 
                 if (result is not null && result.GetNextActions().Any())
@@ -125,23 +134,29 @@ namespace PmEngine.Core
         public async Task<INextActionsMarkup?> MakeAction(IActionWrapper action, IUserSession user, IActionArguments? arguments = null)
         {
             _logger.LogInformation($"User ({user}): MakeAction {action.DisplayName} ({action.ActionType})");
-
-            if (action.ActionType is null)
-                return action.NextActions;
-
-            if (action.ActionType.GetInterface("IAction") == null)
-                throw new Exception(action.ActionType + " не реализует интерфейс IAction.");
+            INextActionsMarkup? result = null;
 
             await MakeEvent<IMakeActionBeforeEventHandler>((handler) => handler.Handle(user, action));
 
-            var act = (IAction?)Activator.CreateInstance(action.ActionType);
+            if (!_config.Properties.UseLibStorage)
+            {
+                if (action.ActionType is null)
+                    return action.NextActions;
 
-            if (act is null)
-                throw new Exception("Не удалось создать экшн " + action.ActionType);
+                if (action.ActionType.GetInterface("IAction") == null)
+                    throw new Exception(action.ActionType + " не реализует интерфейс IAction.");
 
-            var result = await act.DoAction(action, user, action.Arguments);
 
-            await act.AfterAction(action, user, action.Arguments);
+                var act = (IAction?)Activator.CreateInstance(action.ActionType);
+
+                if (act is null)
+                    throw new Exception("Не удалось создать экшн " + action.ActionType);
+
+                result = await act.DoAction(action, user, action.Arguments);
+                await act.AfterAction(action, user, action.Arguments);
+            }
+            else
+                result = await Assembler.InAssembly(action, user);
 
             await MakeEvent<IMakeActionAfterEventHandler>((handler) => handler.Handle(user, action));
 

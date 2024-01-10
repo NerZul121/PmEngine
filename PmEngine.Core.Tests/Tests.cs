@@ -40,7 +40,7 @@ namespace PmEngine.Core.Tests
             services.AddSingleton<IModuleRegistrator>(new TestModuleRegistrator());
             services.AddScoped(typeof(IOutputManager), typeof(TestCoreOutput));
 
-            services.AddPMEngine(engine => { engine.Properties.DataProvider = Enums.DataProvider.InMemory; engine.Properties.InitializationAction = typeof(MyActionJoka); });
+            services.AddPMEngine(engine => { engine.Properties.DataProvider = Enums.DataProvider.InMemory; engine.Properties.InitializationAction = typeof(MyActionJoka); engine.Properties.UseLibStorage = true; });
             services.AddLogging();
             using ILoggerFactory loggerFactory = LoggerFactory.Create((a) => { a.AddConsole(); });
             services.AddSingleton(loggerFactory);

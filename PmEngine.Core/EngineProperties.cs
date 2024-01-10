@@ -53,5 +53,15 @@ namespace PmEngine.Core
         /// Алгоритм выбора дефолтного аутпута
         /// </summary>
         public List<Func<IUserSession, IOutputManager>> DefaultOutputSetter { get; set; } = new ();
+
+        /// <summary>
+        /// Использовать 
+        /// </summary>
+        public bool UseLibStorage { get; set; } = false;
+
+        /// <summary>
+        /// Путь к хранилищу библиотек
+        /// </summary>
+        public string LibStoragePath { get; set; } = Environment.GetEnvironmentVariable("LIB_STORAGE_PATH") ?? "./";
     }
 }
