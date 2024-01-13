@@ -6,6 +6,7 @@ using PmEngine.Core.Extensions;
 using System.Text.Json;
 using PmEngine.Core.SessionElements;
 using PmEngine.Core.Actions;
+using PmEngine.Core.Entities;
 
 namespace PmEngine.Core
 {
