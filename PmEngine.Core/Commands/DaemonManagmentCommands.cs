@@ -1,15 +1,14 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PmEngine.Core.Daemons;
 using PmEngine.Core.Interfaces;
-using System.Linq;
 
 namespace PmEngine.Core.Commands
 {
     public class ReloadDaemonCommand : ICommand
     {
-        public string Name => "daemon reload";
+        public string Name => "daemonreload";
 
-        public string CommandPattern => "daemon reload daemonname";
+        public string CommandPattern => "daemonreload daemonname";
 
         public string Description => "перезагрузка указанного демона";
 
