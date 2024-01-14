@@ -5,10 +5,13 @@
 	/// Если вам необходима постоянная работа в фоне - то реализуйте цикл while(true) внутри и отлов исключений.
     /// </summary>
     public interface IDaemon
-	{
-		/// <summary>
-		/// Запуск фонового процесса
-		/// </summary>
-		public void Start();
-	}
+    {
+        /// <summary>
+        /// Запуск фонового процесса
+        /// </summary>
+        public void Start();
+        public string ProcessId { get; set; }
+        public void Stop();
+        public CancellationToken CancellationToken { get; set; }
+    }
 }

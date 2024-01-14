@@ -17,7 +17,22 @@ namespace PmEngine.Core
             if (String.IsNullOrEmpty(fullname))
                 return wrapper.NextActions;
 
-            var lib = wrapper.DisplayName.Split('.').First();
+            var actionClass = Get<IAction>(fullname);
+
+            if (actionClass is not null)
+                return await actionClass.DoAction(wrapper, user, wrapper.Arguments);
+
+            return null;
+        }
+
+        public static async Task<INextActionsMarkup?> InAssembly<T>(IUserSession user, IActionArguments? args = null) where T : IAction
+        {
+            return await InAssembly(new ActionWrapper("", typeof(T).FullName, args), user);
+        }
+
+        public static T? Get<T>(string fullname)
+        {
+            var lib = fullname.Split('.').First();
             var dlls = Directory.GetFiles(LibPaht).Where(s => s.Contains(lib) && s.EndsWith(".dll"));
 
             Assembly? assembly = null;
@@ -36,7 +51,7 @@ namespace PmEngine.Core
             }
 
             if (assembly is null)
-                return null;
+                return default(T);
 
             var deps = assembly.GetReferencedAssemblies();
             foreach (var dep in deps)
@@ -53,19 +68,12 @@ namespace PmEngine.Core
             }
 
             if (type == null)
-                Console.WriteLine("Тип не найден");
-            else
             {
-                IAction srv = (IAction)Activator.CreateInstance(type);
-                return await srv.DoAction(wrapper, user, wrapper.Arguments);
+                Console.WriteLine("Тип не найден");
+                return default(T);
             }
 
-            return null;
-        }
-
-        public static async Task<INextActionsMarkup?> InAssembly<T>(IUserSession user, IActionArguments? args = null) where T : IAction
-        {
-            return await InAssembly(new ActionWrapper("", typeof(T).FullName, args), user);
+            return (T?)Activator.CreateInstance(type);
         }
     }
 }

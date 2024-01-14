@@ -107,7 +107,12 @@ namespace PmEngine.Core.SessionElements
                 NextActions = sessionData.NextActions(services);
             }
             else
-                CurrentAction = new ActionWrapper("Initialization", engine.Properties.InitializationAction ?? throw new Exception("Не указано действие инициализации пользователя."), engine.Properties.StartArguments);
+            {
+                if (engine.Properties.InitializationAction is null)
+                    CurrentAction = new ActionWrapper("Initialization", engine.Properties.InitializationActionName, engine.Properties.StartArguments);
+                else
+                    CurrentAction = new ActionWrapper("Initialization", engine.Properties.InitializationAction, engine.Properties.StartArguments);
+            }
 
             services.GetRequiredService<IEngineProcessor>().MakeEvent<IUserSesseionInitializeEventHandler>(async (handler) => await handler.Handle(this)).Wait();
         }
@@ -164,10 +169,10 @@ namespace PmEngine.Core.SessionElements
             if (DefaultOutput is null)
             {
                 var funcs = Services.GetRequiredService<IEngineConfigurator>().Properties.DefaultOutputSetter;
-                foreach(var func in funcs)
+                foreach (var func in funcs)
                 {
                     var output = func(this);
-                    if(output != null)
+                    if (output != null)
                     {
                         DefaultOutput = output;
                         break;

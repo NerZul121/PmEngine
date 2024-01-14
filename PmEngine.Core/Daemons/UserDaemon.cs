@@ -8,53 +8,35 @@ namespace PmEngine.Core.Daemons
     /// <summary>
     /// Фоновый процесс обработки сессий пользователей.
     /// </summary>
-    public class UserDaemon : IDaemon
+    public class UserDaemon : BaseDaemon
     {
-        private ILogger _logger;
-        private IServiceProvider _services;
-
-        public UserDaemon(ILogger logger, IServiceProvider services)
+        public UserDaemon(ILogger logger, IServiceProvider services) : base(services, logger)
         {
-            _logger = logger;
-            _services = services;
         }
 
         /// <summary>
         /// Запуск процесса.
         /// </summary>
-        public void Start()
+        public override Task Work()
         {
-            while (true)
+            var users = _services.GetRequiredService<IServerSession>().GetAllSessions().Where(v => v.CachedData.UserType != (int)UserType.Techincal && v.CachedData.UserType != (int)UserType.Banned).ToList();
+
+            foreach (var user in users)
             {
-                try
+                Task.Factory.StartNew(async () =>
                 {
-                    Task.Factory.StartNew(() =>
+                    try
                     {
-                        var users = _services.GetRequiredService<IServerSession>().GetAllSessions().Where(v => v.CachedData.UserType != (int)UserType.Techincal && v.CachedData.UserType != (int)UserType.Banned).ToList();
-
-                        foreach (var user in users)
-                        {
-                            Task.Factory.StartNew(async () =>
-                            {
-                                try
-                                {
-                                    await Process(user);
-                                }
-                                catch (Exception ex)
-                                {
-                                    _logger.LogError(ex.ToString());
-                                }
-                            });
-                        }
-                    });
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError("USER DAEMON: " + ex.ToString());
-                }
-
-                Task.Delay(2500).Wait();
+                        await Process(user);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex.ToString());
+                    }
+                });
             }
+
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -81,7 +63,7 @@ namespace PmEngine.Core.Daemons
                 return false;
 
             if (userSession.CachedData.LastOnlineDate.AddMinutes(_services.GetRequiredService<IEngineConfigurator>().Properties.SessionLifeTime) > DateTime.Now)
-                return true;            
+                return true;
 
             await _services.GetRequiredService<IServerSession>().RemoveUserSession(userSession);
 

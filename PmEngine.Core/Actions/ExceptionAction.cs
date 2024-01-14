@@ -10,7 +10,12 @@ namespace PmEngine.Core.Actions
         {
             user.AddToOutput("Sorry, but an error occurred. Report this to administrator.");
             user.AddToOutput(arguments.InputData ?? "");
-            return new SingleMarkup(new [] { new ActionWrapper("Menue", user.Services.GetRequiredService<IEngineConfigurator>().Properties.InitializationAction) });
+            var props = user.Services.GetRequiredService<IEngineConfigurator>().Properties;
+
+            if (string.IsNullOrEmpty(props.InitializationActionName))
+                return new SingleMarkup(new[] { new ActionWrapper("Menue", props.InitializationAction) });
+            else
+                return new SingleMarkup(new[] { new ActionWrapper("Menue", props.InitializationActionName) });
         }
     }
 }

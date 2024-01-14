@@ -20,6 +20,11 @@ namespace PmEngine.Core
         public Type? InitializationAction { get; set; }
 
         /// <summary>
+        /// Начальное действие при инициализации сессии пользователя
+        /// </summary>
+        public string? InitializationActionName { get; set; }
+
+        /// <summary>
         /// Агрументы для начального действия
         /// </summary>
         public IActionArguments StartArguments { get; set; } = new ActionArguments();
