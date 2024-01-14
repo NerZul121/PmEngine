@@ -62,7 +62,16 @@ namespace PmEngine.Core.Extensions
             var referencedPaths = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll");
             var toLoad = referencedPaths.Where(r => !loadedPaths.Contains(r, StringComparer.InvariantCultureIgnoreCase)).ToList();
 
-            toLoad.ForEach(path => loadedAssemblies.Add(AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(path))));
+            toLoad.ForEach((path) =>
+            {
+                try
+                {
+                    loadedAssemblies.Add(AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(path)));
+                }
+                // Безопасная загрузка при наличии работы с "мягкими" ссылками.
+                catch { }
+            });
+
             var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic);
             foreach (var assembly in assemblies)
             {
