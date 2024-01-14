@@ -30,7 +30,7 @@ namespace PmEngine.Core
             return await InAssembly(new ActionWrapper("", typeof(T).FullName, args), user);
         }
 
-        public static T? Get<T>(string fullname)
+        public static T? Get<T>(string fullname, object?[]? args = null)
         {
             var lib = fullname.Split('.').First();
             var dlls = Directory.GetFiles(LibPaht).Where(s => s.Contains(lib) && s.EndsWith(".dll"));
@@ -73,7 +73,7 @@ namespace PmEngine.Core
                 return default(T);
             }
 
-            return (T?)Activator.CreateInstance(type);
+            return (T?)Activator.CreateInstance(type, args);
         }
     }
 }

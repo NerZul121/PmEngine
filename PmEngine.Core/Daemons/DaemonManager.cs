@@ -13,11 +13,13 @@ namespace PmEngine.Core.Daemons
     {
         private readonly ILogger<DaemonManager> _logger;
         private List<IDaemon> _daemons = new();
+        private readonly IServiceProvider _serviceProvider;
         public static List<string> DaemonsToLoad { get; private set; } = new();
 
-        public DaemonManager(ILogger<DaemonManager> logger)
+        public DaemonManager(ILogger<DaemonManager> logger, IServiceProvider services)
         {
             _logger = logger;
+            _serviceProvider = services;
         }
 
         /// <summary>
@@ -88,12 +90,12 @@ namespace PmEngine.Core.Daemons
 
         public IDaemon? LoadDaemon<T>() where T : IDaemon
         {
-            return Assembler.Get<IDaemon>(typeof(T).FullName);
+            return LoadDaemon(typeof(T).FullName);
         }
 
         public IDaemon? LoadDaemon(string fullname)
         {
-            return Assembler.Get<IDaemon>(fullname);
+            return Assembler.Get<IDaemon>(fullname, new object?[] { _serviceProvider, _logger });
         }
 
         public void StopDaemon<T>() where T : IDaemon

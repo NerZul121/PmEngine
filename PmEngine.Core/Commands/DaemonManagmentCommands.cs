@@ -21,8 +21,6 @@ namespace PmEngine.Core.Commands
 
             var daemonManager = (DaemonManager)user.Services.GetServices<IManager>().First(s => s.GetType() == typeof(DaemonManager));
 
-            var daemonType = Assembler.Get<IDaemon>(daemonName);
-
             daemonManager.ReloadDaemon(daemonName);
 
             await user.Output.ShowContent("Демон перезагружен.");
