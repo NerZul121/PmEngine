@@ -41,6 +41,8 @@ namespace PmEngine.Core
                 if (action is null)
                     return;
 
+                _logger.LogInformation($"{userSession}: {action.DisplayName}");
+
                 userSession.NextActions = null;
                 userSession.CurrentAction = action;
                 userSession.InputAction = null;
@@ -60,7 +62,12 @@ namespace PmEngine.Core
                 else
                 {
                     if (action.ActionType is null)
-                        result = action.NextActions;
+                    {
+                        var at = GetActionType(action.ActionTypeName);
+
+                        if(at is null)
+                            result = action.NextActions;
+                    }
                     else if (action.ActionType.GetInterface("IAction") == null)
                         throw new Exception(action.ActionType + " не реализует интерфейс IAction.");
 
@@ -162,6 +169,27 @@ namespace PmEngine.Core
             await MakeEvent<IMakeActionAfterEventHandler>((handler) => handler.Handle(user, action));
 
             return result;
+        }
+
+        /// <summary>
+        /// Получение типа экшена
+        /// </summary>
+        /// <param name="actionName"></param>
+        /// <returns></returns>
+        public Type? GetActionType(string actionName)
+        {
+            if (string.IsNullOrEmpty(actionName))
+                return null;
+
+            Type? action = null;
+
+            if (_config.Properties.UseLibStorage)
+                action = Assembler.Get<IAction>(actionName)?.GetType();
+
+            if (action is null)
+                action = _services.GetServices<IAction>().FirstOrDefault(a => a.GetType().FullName == actionName)?.GetType();
+
+            return action;
         }
 
         /// <summary>

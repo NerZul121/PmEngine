@@ -93,9 +93,9 @@ namespace PmEngine.Core.Daemons
             return LoadDaemon(typeof(T).FullName);
         }
 
-        public IDaemon? LoadDaemon(string fullname)
+        public IDaemon? LoadDaemon(string fullname, string? libName = null)
         {
-            return Assembler.Get<IDaemon>(fullname, new object?[] { _serviceProvider, _logger });
+            return Assembler.Get<IDaemon>(fullname, libName, new object?[] { _serviceProvider, _logger });
         }
 
         public void StopDaemon<T>() where T : IDaemon

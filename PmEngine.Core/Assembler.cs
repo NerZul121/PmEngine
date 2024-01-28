@@ -30,9 +30,9 @@ namespace PmEngine.Core
             return await InAssembly(new ActionWrapper("", typeof(T).FullName, args), user);
         }
 
-        public static T? Get<T>(string fullname, object?[]? args = null)
+        public static T? Get<T>(string fullname, string? libName = null, object?[]? args = null)
         {
-            var lib = fullname.Split('.').First();
+            var lib = libName ?? fullname.Split('.').First();
             var dlls = Directory.GetFiles(LibPaht).Where(s => s.Contains(lib) && s.EndsWith(".dll"));
 
             Assembly? assembly = null;

@@ -32,13 +32,14 @@ namespace PmEngine.Core.SessionElements
 
     public class ActionWrapperSaveModel
     {
-        public string ActionName { get; set; }
+        public string? ActionName { get; set; }
         public string DisplayName { get; set; }
+        
         public Dictionary<String, Object> Arguments { get; set; }
 
         public ActionWrapper Wrap(IServiceProvider serviceProvider)
         {
-            var result = new ActionWrapper(DisplayName, serviceProvider.GetServices<IAction>().FirstOrDefault(a => a.GetType().ToString() == ActionName).GetType(), new ActionArguments(Arguments));
+            var result = new ActionWrapper(DisplayName, ActionName, new ActionArguments(Arguments));
 
             return result;
         }
@@ -50,7 +51,7 @@ namespace PmEngine.Core.SessionElements
 
         public ActionWrapperSaveModel(IActionWrapper actionWrapper)
         {
-            ActionName = actionWrapper.ActionType.ToString();
+            ActionName = actionWrapper.ActionType?.ToString() ?? actionWrapper.ActionTypeName ?? null;
             DisplayName = actionWrapper.DisplayName;
             Arguments = actionWrapper.Arguments.ToDict();
         }

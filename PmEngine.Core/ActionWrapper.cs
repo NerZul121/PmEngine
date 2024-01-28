@@ -34,7 +34,7 @@ namespace PmEngine.Core
         public Type? ActionType { get; set; }
 
         /// <summary>
-        /// Имя типа действия
+        /// Имя типа действия. Доступно ТОЛЬКО при UseLibStorage = true!!!
         /// </summary>
         public string? ActionTypeName { get; set; }
 
