@@ -38,10 +38,7 @@ namespace PmEngine.Core
         {
             try
             {
-                if (action is null)
-                    return;
-
-                _logger.LogInformation($"{userSession}: {action.DisplayName}");
+                _logger.LogInformation($"{userSession}: {action.DisplayName} ({action.ActionType} {action.ActionTypeName})");
 
                 userSession.NextActions = null;
                 userSession.CurrentAction = action;
@@ -176,7 +173,7 @@ namespace PmEngine.Core
         /// </summary>
         /// <param name="actionName"></param>
         /// <returns></returns>
-        public Type? GetActionType(string actionName)
+        public Type? GetActionType(string? actionName)
         {
             if (string.IsNullOrEmpty(actionName))
                 return null;
