@@ -30,13 +30,13 @@ namespace PmEngine.Core.Interfaces
         public async Task ActionProcess(IActionWrapper action)
         {
             var processor = Services.GetRequiredService<IEngineProcessor>();
-            await processor.ActionProcess(action, this, action.Arguments);
+            await processor.ActionProcess(action, this);
         }
 
         public async Task<INextActionsMarkup?> MakeAction(IActionWrapper action)
         {
             var processor = Services.GetRequiredService<IEngineProcessor>();
-            return await processor.MakeAction(action, this, action.Arguments);
+            return await processor.MakeAction(action, this);
         }
     }
 }

@@ -68,7 +68,7 @@ namespace PmEngine.Core
                     init(session);
 
                 if (!engine.Properties.EnableStateless || String.IsNullOrEmpty(session.CachedData.SessionData))
-                    await _services.GetRequiredService<IEngineProcessor>().ActionProcess(session.CurrentAction, session, new ActionArguments());
+                    await _services.GetRequiredService<IEngineProcessor>().ActionProcess(session.CurrentAction, session);
             }
 
             return session;

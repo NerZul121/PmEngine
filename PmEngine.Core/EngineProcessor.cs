@@ -6,7 +6,6 @@ using PmEngine.Core.Extensions;
 using System.Text.Json;
 using PmEngine.Core.SessionElements;
 using PmEngine.Core.Actions;
-using PmEngine.Core.Entities;
 
 namespace PmEngine.Core
 {
@@ -32,9 +31,8 @@ namespace PmEngine.Core
         /// Выполнение пользователем выбранного действия c последствиями и учетом следующих действий. Т.е. считаем, что пользователь нажал на кнопку и ему должны вернуться списком его следующие действия.
         /// </summary>
         /// <param name="action">Действие</param>
-        /// <param name="arguments"></param>
         /// <param name="userSession"></param>
-        public async Task ActionProcess(IActionWrapper action, IUserSession userSession, IActionArguments arguments)
+        public async Task ActionProcess(IActionWrapper action, IUserSession userSession)
         {
             try
             {
@@ -62,7 +60,7 @@ namespace PmEngine.Core
                     {
                         var at = GetActionType(action.ActionTypeName);
 
-                        if(at is null)
+                        if (at is null)
                             result = action.NextActions;
                     }
                     else if (action.ActionType.GetInterface("IAction") == null)
@@ -93,7 +91,7 @@ namespace PmEngine.Core
                 if (!String.IsNullOrEmpty(output) || userSession.Media is not null && userSession.Media.Any())
                     msgId = await userSession.GetOutput().ShowContent(output, result?.NumeredDuplicates(), userSession.Media, result?.Arguments);
 
-                arguments.Set("messageId", msgId);
+                action.Arguments.Set("messageId", msgId);
 
                 if (iaction is not null)
                     await iaction.AfterAction(action, userSession, action.Arguments);
@@ -120,7 +118,7 @@ namespace PmEngine.Core
                 _logger.LogError($"Ошибка исполнения {action}: {ex}", userSession.CachedData);
                 userSession.OutputContent = "";
                 userSession.Media = null;
-                await ActionProcess(new ActionWrapper("ExceptionAction", _services.GetRequiredService<IEngineConfigurator>().Properties.ExceptionAction ?? typeof(ExceptionAction)), userSession, args);
+                await ActionProcess(new ActionWrapper("ExceptionAction", _services.GetRequiredService<IEngineConfigurator>().Properties.ExceptionAction ?? typeof(ExceptionAction), args), userSession);
             }
             finally
             {
@@ -136,7 +134,7 @@ namespace PmEngine.Core
         /// <param name="action">Экшн</param>
         /// <returns>Результат выполнения</returns>
         /// <exception cref="Exception">Ошибки при инициализации/выполнени экшена</exception>
-        public async Task<INextActionsMarkup?> MakeAction(IActionWrapper action, IUserSession user, IActionArguments? arguments = null)
+        public async Task<INextActionsMarkup?> MakeAction(IActionWrapper action, IUserSession user)
         {
             _logger.LogInformation($"User ({user}): MakeAction {action.DisplayName} ({action.ActionType})");
             INextActionsMarkup? result = null;
