@@ -114,7 +114,7 @@ namespace PmEngine.Core
             }
             catch (Exception ex)
             {
-                var args = new ActionArguments(new() { { "exception", ex } });
+                var args = new ActionArguments(new() { { "exception", ex }, { "action", action } });
                 _logger.LogError($"Ошибка исполнения {action}: {ex}", userSession.CachedData);
                 userSession.OutputContent = "";
                 userSession.Media = null;
