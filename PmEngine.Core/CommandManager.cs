@@ -14,6 +14,11 @@ namespace PmEngine.Core
         private ILogger _logger;
         private IServiceProvider _services;
 
+        /// <summary>
+        /// Manager of commands
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="services"></param>
         public CommandManager(ILogger logger, IServiceProvider services)
         {
             _logger = logger;

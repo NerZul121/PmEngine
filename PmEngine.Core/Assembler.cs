@@ -4,11 +4,20 @@ using System.Runtime.Loader;
 
 namespace PmEngine.Core
 {
+    /// <summary>
+    /// This class provide possibility to work with actions in another libraries in library storage
+    /// </summary>
     public static class Assembler
     {
         internal static string LibPaht { get; set; } = "./";
 
-        public static async Task<INextActionsMarkup?> InAssembly(IActionWrapper wrapper, IUserSession user)
+        /// <summary>
+        /// Make action in not refferenced assembly
+        /// </summary>
+        /// <param name="wrapper"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public static async Task<INextActionsMarkup?> InAssembly(ActionWrapper wrapper, IUserSession user)
         {
             var fullname = wrapper.ActionType?.FullName ?? wrapper.ActionTypeName;
 
@@ -20,16 +29,31 @@ namespace PmEngine.Core
             var actionClass = Get<IAction>(fullname);
 
             if (actionClass is not null)
-                return await actionClass.DoAction(wrapper, user, wrapper.Arguments);
+                return await actionClass.DoAction(wrapper, user);
 
             return null;
         }
 
-        public static async Task<INextActionsMarkup?> InAssembly<T>(IUserSession user, IActionArguments? args = null) where T : IAction
+        /// <summary>
+        /// Make action in not refferenced assembly
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="user"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public static async Task<INextActionsMarkup?> InAssembly<T>(IUserSession user, Arguments? args = null) where T : IAction
         {
             return await InAssembly(new ActionWrapper("", typeof(T).FullName, args), user);
         }
 
+        /// <summary>
+        /// Get type from assembly in library storage
+        /// </summary>
+        /// <typeparam name="T">Type</typeparam>
+        /// <param name="fullname">Full name of type</param>
+        /// <param name="libName">DLL name without extension</param>
+        /// <param name="args">Arguments to constructor of class</param>
+        /// <returns></returns>
         public static T? Get<T>(string fullname, string? libName = null, object?[]? args = null)
         {
             var lib = libName ?? fullname.Split('.').First();

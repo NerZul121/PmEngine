@@ -4,12 +4,21 @@ using PmEngine.Core.Interfaces;
 
 namespace PmEngine.Core.Actions
 {
+    /// <summary>
+    /// Defdault exception action
+    /// </summary>
     public class ExceptionAction : IAction
     {
-        public async Task<INextActionsMarkup?> DoAction(IActionWrapper currentAction, IUserSession user, IActionArguments arguments)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="currentAction"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public async Task<INextActionsMarkup?> DoAction(ActionWrapper currentAction, IUserSession user)
         {
             user.AddToOutput("Sorry, but an error occurred. Report this to administrator.");
-            user.AddToOutput(arguments.InputData ?? "");
+            user.AddToOutput(currentAction.Arguments.InputData ?? "");
             var props = user.Services.GetRequiredService<IEngineConfigurator>().Properties;
 
             if (string.IsNullOrEmpty(props.InitializationActionName))

@@ -2,7 +2,7 @@
 	<PropertyGroup>
 		<Company>PmGames Studio</Company>
 		<Copyright>Copyright © PmGames Studio $([System.DateTime]::Now.ToString(`yyyy`))</Copyright>
-		<FileVersion>1.81.$([System.DateTime]::Now.ToString(`MMdd`)).$([System.DateTime]::Now.ToString(`HHmm`))</FileVersion>
+		<FileVersion>1.88.$([System.DateTime]::Now.ToString(`MMdd`)).$([System.DateTime]::Now.ToString(`HHmm`))</FileVersion>
 		<AssemblyVersion>$(FileVersion)</AssemblyVersion>
 		<PackageVersion>$(FileVersion)</PackageVersion>
 		<Version>$(FileVersion)</Version>

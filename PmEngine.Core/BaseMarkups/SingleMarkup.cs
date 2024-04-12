@@ -15,7 +15,7 @@ namespace PmEngine.Core.BaseMarkups
         /// <summary>
         /// Аргументы
         /// </summary>
-        public IActionArguments Arguments { get; set; } = new ActionArguments();
+        public Arguments Arguments { get; set; } = new Arguments();
 
         /// <summary>
         /// Разметка кнопок в один столбец
@@ -26,7 +26,7 @@ namespace PmEngine.Core.BaseMarkups
         /// Разметка кнопок в один столбец с инициализацией действий
         /// </summary>
         /// <param name="actions">Действия</param>
-        public SingleMarkup(IEnumerable<IActionWrapper> actions)
+        public SingleMarkup(IEnumerable<ActionWrapper> actions)
         {
             Actions = actions.ToList();
         }
@@ -34,22 +34,22 @@ namespace PmEngine.Core.BaseMarkups
         /// <summary>
         /// Действия
         /// </summary>
-        public List<IActionWrapper> Actions { get; set; } = new();
+        public List<ActionWrapper> Actions { get; set; } = new();
 
         /// <summary>
         /// Получение действий в двумерном массиве
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<IEnumerable<IActionWrapper>> GetNextActions()
+        public IEnumerable<IEnumerable<ActionWrapper>> GetNextActions()
         {
-            return Actions.Select(s => new IActionWrapper[] { s });
+            return Actions.Select(s => new ActionWrapper[] { s });
         }
 
         /// <summary>
         /// Добавить действие
         /// </summary>
         /// <param name="action"></param>
-        public void Add(IActionWrapper action)
+        public void Add(ActionWrapper action)
         {
             Actions.Add(action);
         }
@@ -60,7 +60,7 @@ namespace PmEngine.Core.BaseMarkups
         /// <param name="displayName"></param>
         /// <param name="actionClass"></param>
         /// <param name="arguments"></param>
-        public IActionWrapper Add(string displayName, Type actionClass, IActionArguments? arguments = null)
+        public ActionWrapper Add(string displayName, Type actionClass, Arguments? arguments = null)
         {
             var ar = arguments is null ? new ActionWrapper(displayName, actionClass) : new ActionWrapper(displayName, actionClass, arguments);
             Actions.Add(ar);
@@ -71,7 +71,7 @@ namespace PmEngine.Core.BaseMarkups
         /// 
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<IActionWrapper> GetFloatNextActions()
+        public IEnumerable<ActionWrapper> GetFloatNextActions()
         {
             return Actions.ToArray();
         }

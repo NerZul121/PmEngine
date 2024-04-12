@@ -6,7 +6,7 @@ namespace PmEngine.Core
     /// <summary>
     /// Обертка действия
     /// </summary>
-    public class ActionWrapper : IActionWrapper
+    public class ActionWrapper
     {
         /// <summary>
         /// ГУИД как идентификатор действия
@@ -46,14 +46,14 @@ namespace PmEngine.Core
         /// <summary>
         /// Аргументы
         /// </summary>
-        public IActionArguments Arguments { get; set; } = new ActionArguments();
+        public Arguments Arguments { get; set; } = new Arguments();
 
         /// <summary>
         /// Обертка для действия
         /// </summary>
         /// <param name="name"></param>
         /// <param name="actionClass"></param>
-        public ActionWrapper(string name, Type actionClass)
+        public ActionWrapper(string name, Type? actionClass)
         {
             DisplayName = name;
             ActionType = actionClass;
@@ -74,7 +74,7 @@ namespace PmEngine.Core
         /// <param name="displayName"></param>
         /// <param name="actionClass"></param>
 		/// <param name="arguments"></param>
-        public ActionWrapper(string displayName, Type? actionClass, IActionArguments arguments)
+        public ActionWrapper(string displayName, Type? actionClass, Arguments arguments)
         {
             DisplayName = displayName;
             ActionType = actionClass;
@@ -87,11 +87,11 @@ namespace PmEngine.Core
         /// <param name="displayName"></param>
         /// <param name="actionClass"></param>
         /// <param name="arguments"></param>
-        public ActionWrapper(string displayName, string? actionClass, IActionArguments? arguments = null)
+        public ActionWrapper(string displayName, string? actionClass, Arguments? arguments = null)
         {
             DisplayName = displayName;
             ActionTypeName = actionClass;
-            Arguments = arguments ?? new ActionArguments();
+            Arguments = arguments ?? new Arguments();
         }
 
         /// <summary>
@@ -110,11 +110,20 @@ namespace PmEngine.Core
     /// <typeparam name="T"></typeparam>
     public class ActionWrapper<T> : ActionWrapper where T : IAction
     {
-        public ActionWrapper(string? name = "") : base(name, typeof(T))
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        public ActionWrapper(string name = "") : base(name, typeof(T))
         {
         }
 
-        public ActionWrapper(string name, IActionArguments args) : base(name, typeof(T), args)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="args"></param>
+        public ActionWrapper(string name, Arguments args) : base(name, typeof(T), args)
         {
         }
     }

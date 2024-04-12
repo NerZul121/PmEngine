@@ -47,10 +47,9 @@ namespace PmEngine.Core.BaseClasses
                 foreach (var type in GetType().Assembly.GetTypes().Where(t => t.GetInterface("IDataEntity") != null && !t.IsAbstract))
                     modelBuilder.Entity(type);
             else
-            {
                 foreach (Type type in _configurator.ServiceProvider.GetServices<IDataEntity>().Select(s => s.GetType()))
                     modelBuilder.Entity(type);
-            }
+
             base.OnModelCreating(modelBuilder);
         }
 

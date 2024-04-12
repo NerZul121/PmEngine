@@ -32,7 +32,7 @@ namespace PmEngine.Core
         /// </summary>
         /// <param name="action">Действие</param>
         /// <param name="userSession"></param>
-        public async Task ActionProcess(IActionWrapper action, IUserSession userSession)
+        public async Task ActionProcess(ActionWrapper action, IUserSession userSession)
         {
             try
             {
@@ -73,7 +73,7 @@ namespace PmEngine.Core
                         if (iaction is null)
                             throw new Exception("Не удалось создать экшн " + action.ActionType);
 
-                        result = await iaction.DoAction(action, userSession, action.Arguments);
+                        result = await iaction.DoAction(action, userSession);
                     }
                 }
 
@@ -94,7 +94,7 @@ namespace PmEngine.Core
                 action.Arguments.Set("messageId", msgId);
 
                 if (iaction is not null)
-                    await iaction.AfterAction(action, userSession, action.Arguments);
+                    await iaction.AfterAction(action, userSession);
 
                 await MakeEvent<IMakeActionAfterEventHandler>((handler) => handler.Handle(userSession, action));
 
@@ -114,7 +114,7 @@ namespace PmEngine.Core
             }
             catch (Exception ex)
             {
-                var args = new ActionArguments(new() { { "exception", ex }, { "action", action } });
+                var args = new Arguments(new() { { "exception", ex }, { "action", action } });
                 _logger.LogError($"Ошибка исполнения {action}: {ex}", userSession.CachedData);
                 userSession.OutputContent = "";
                 userSession.Media = null;
@@ -134,7 +134,7 @@ namespace PmEngine.Core
         /// <param name="action">Экшн</param>
         /// <returns>Результат выполнения</returns>
         /// <exception cref="Exception">Ошибки при инициализации/выполнени экшена</exception>
-        public async Task<INextActionsMarkup?> MakeAction(IActionWrapper action, IUserSession user)
+        public async Task<INextActionsMarkup?> MakeAction(ActionWrapper action, IUserSession user)
         {
             _logger.LogInformation($"User ({user}): MakeAction {action.DisplayName} ({action.ActionType})");
             INextActionsMarkup? result = null;
@@ -155,8 +155,8 @@ namespace PmEngine.Core
                 if (act is null)
                     throw new Exception("Не удалось создать экшн " + action.ActionType);
 
-                result = await act.DoAction(action, user, action.Arguments);
-                await act.AfterAction(action, user, action.Arguments);
+                result = await act.DoAction(action, user);
+                await act.AfterAction(action, user);
             }
             else
                 result = await Assembler.InAssembly(action, user);

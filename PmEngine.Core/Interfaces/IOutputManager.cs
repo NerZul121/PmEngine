@@ -13,7 +13,7 @@
         /// <param name="media"></param>
         /// <param name="additionals"></param>
         /// <returns></returns>
-        public Task<int> ShowContent(string content, INextActionsMarkup? nextActions = null, IEnumerable<object>? media = null, IActionArguments? additionals = null);
+        public Task<int> ShowContent(string content, INextActionsMarkup? nextActions = null, IEnumerable<object>? media = null, Arguments? additionals = null);
 
         /// <summary>
         /// Изменение существующего контента
@@ -24,7 +24,7 @@
         /// <param name="media"></param>
         /// <param name="additionals"></param>
         /// <returns></returns>
-        public Task EditContent(int messageId, string content, INextActionsMarkup? nextActions = null, IEnumerable<object>? media = null, IActionArguments? additionals = null);
+        public Task EditContent(int messageId, string content, INextActionsMarkup? nextActions = null, IEnumerable<object>? media = null, Arguments? additionals = null);
 
         /// <summary>
         /// Удаление сообщения

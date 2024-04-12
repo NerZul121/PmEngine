@@ -4,24 +4,12 @@ using PmEngine.Core.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using PmEngine.Core.Interfaces;
 using Microsoft.Extensions.Logging;
-using System.Text;
 
 namespace PmEngine.Core.Tests
 {
     [TestClass]
     public class Tests
     {
-        [TestMethod]
-        public void TestString()
-        {
-            var data = "YXV0aF9kYXRlPTE2OTQ1MjMwMjMKcXVlcnlfaWQ9QUFHR1VQMFFBQUFBQUlaUV9SRGFHWTh2CnVzZXI9eyJpZCI6Mjg1MDM2Njc4LCJmaXJzdF9uYW1lIjoiSmVueWEiLCJsYXN0X25hbWUiOiIiLCJ1c2VybmFtZSI6ImViYWNoOTAyMTAiLCJsYW5ndWFnZV9jb2RlIjoicnUiLCJpc19wcmVtaXVtIjp0cnVlLCJhbGxvd3Nfd3JpdGVfdG9fcG0iOnRydWV9";
-
-            var stringedData = Encoding.UTF8.GetString(Convert.FromBase64String(data));
-            var id = stringedData.Split('=').Last().Replace("{\"id\":", "").Split(':').First().Split(',').First().TrimEnd().Replace("\"", "");
-
-            Console.WriteLine(id);
-        }
-
         [TestMethod]
         public void Testing()
         {
@@ -70,7 +58,7 @@ namespace PmEngine.Core.Tests
         [TestMethod]
         public void CheckDescription()
         {
-            Console.WriteLine(typeof(UserEntity).GetProperty("Id").GetDescription());
+            Console.WriteLine(typeof(UserEntity).GetProperty("Id")?.GetDescription());
         }
 
         [TestMethod]

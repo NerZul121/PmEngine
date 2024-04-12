@@ -17,12 +17,12 @@ namespace PmEngine.Core.Tests
             Console.WriteLine($"{_userData.Owner.Id}: Deleted Message #{messageId}");
         }
 
-        public async Task EditContent(int messageId, string content, INextActionsMarkup? nextActions = null, IEnumerable<object>? media = null, IActionArguments? additionals = null)
+        public async Task EditContent(int messageId, string content, INextActionsMarkup? nextActions = null, IEnumerable<object>? media = null, Arguments? additionals = null)
         {
             Console.WriteLine($"{_userData.Owner.Id}: Edit Mesage content Id {messageId} on {content}");
         }
 
-        public async Task<int> ShowContent(string content, INextActionsMarkup? nextActions = null, IEnumerable<object>? media = null, IActionArguments? additionals = null)
+        public async Task<int> ShowContent(string content, INextActionsMarkup? nextActions = null, IEnumerable<object>? media = null, Arguments? additionals = null)
         {
             Console.WriteLine($"{_userData.Owner.Id}: Send content {content}");
             return _counter++;

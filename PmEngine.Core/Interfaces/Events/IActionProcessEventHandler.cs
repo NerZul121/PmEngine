@@ -11,7 +11,7 @@
         /// <param name="userSession">ID пользователя</param>
         /// <param name="action">Действие</param>
         /// <returns></returns>
-        public Task Handle(IUserSession userSession, IActionWrapper action);
+        public Task Handle(IUserSession userSession, ActionWrapper action);
     }
 
     /// <summary>
@@ -25,7 +25,7 @@
         /// <param name="userSession">ID пользователя</param>
         /// <param name="action">Действие</param>
         /// <returns></returns>
-        public Task Handle(IUserSession userSession, IActionWrapper action);
+        public Task Handle(IUserSession userSession, ActionWrapper action);
     }
 
     /// <summary>
@@ -39,6 +39,6 @@
         /// <param name="userSession">ID пользователя</param>
         /// <param name="action">Действие</param>
         /// <returns></returns>
-        public Task Handle(IUserSession userSession, IActionWrapper action);
+        public Task Handle(IUserSession userSession, ActionWrapper action);
     }
 }

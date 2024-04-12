@@ -28,7 +28,6 @@ namespace PmEngine.Core.Extensions
             services.AddTransient(typeof(BaseContext), typeof(BaseContext));
             services.AddTransient(typeof(IDataContext), typeof(BaseContext));
             services.AddSingleton(typeof(IContextHelper), typeof(ContextHelper));
-            services.AddSingleton(typeof(ICachingService), typeof(CachingService));
 
             if (action != null)
                 action(engine);

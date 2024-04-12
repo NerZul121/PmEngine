@@ -15,7 +15,7 @@ namespace PmEngine.Core.BaseMarkups
         /// <summary>
         /// Аргументы
         /// </summary>
-        public IActionArguments Arguments { get; set; } = new ActionArguments();
+        public Arguments Arguments { get; set; } = new Arguments();
 
         /// <summary>
         /// Базовая разметка
@@ -26,16 +26,16 @@ namespace PmEngine.Core.BaseMarkups
         /// Базовая разметка
         /// </summary>
         /// <param name="actions"></param>
-        public BaseMarkup(IEnumerable<IActionWrapper> actions)
+        public BaseMarkup(IEnumerable<ActionWrapper> actions)
         {
-            Actions = actions.Select(a => new IActionWrapper[] { a });
+            Actions = actions.Select(a => new ActionWrapper[] { a });
         }
 
         /// <summary>
         /// Базовая разметка
         /// </summary>
         /// <param name="actions"></param>
-        public BaseMarkup(IEnumerable<IEnumerable<IActionWrapper>> actions)
+        public BaseMarkup(IEnumerable<IEnumerable<ActionWrapper>> actions)
         {
             Actions = actions;
         }
@@ -43,13 +43,13 @@ namespace PmEngine.Core.BaseMarkups
         /// <summary>
         /// Действия
         /// </summary>
-        public IEnumerable<IEnumerable<IActionWrapper>> Actions { get; set; } = Enumerable.Empty<IEnumerable<IActionWrapper>>();
+        public IEnumerable<IEnumerable<ActionWrapper>> Actions { get; set; } = Enumerable.Empty<IEnumerable<ActionWrapper>>();
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        public virtual IEnumerable<IActionWrapper> GetFloatNextActions()
+        public virtual IEnumerable<ActionWrapper> GetFloatNextActions()
         {
             return Actions.SelectMany(a => a);
         }
@@ -58,7 +58,7 @@ namespace PmEngine.Core.BaseMarkups
         /// Действия
         /// </summary>
         /// <returns></returns>
-        public virtual IEnumerable<IEnumerable<IActionWrapper>> GetNextActions()
+        public virtual IEnumerable<IEnumerable<ActionWrapper>> GetNextActions()
         {
             return Actions;
         }

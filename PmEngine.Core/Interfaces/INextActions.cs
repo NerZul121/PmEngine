@@ -14,20 +14,20 @@
         /// <summary>
         /// Аргументы
         /// </summary>
-        public IActionArguments Arguments { get; set; }
+        public Arguments Arguments { get; set; }
 
         /// <summary>
         /// Получение списка следующих действий в формате двумерного массива.<br/>
         /// Нужно для отрисовки кнопок в табличном формате
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<IEnumerable<IActionWrapper>> GetNextActions();
+        public IEnumerable<IEnumerable<ActionWrapper>> GetNextActions();
 
         /// <summary>
         /// Получение списка следующих действий в форамте плоского одномерного массива
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<IActionWrapper> GetFloatNextActions();
+        public IEnumerable<ActionWrapper> GetFloatNextActions();
 
         /// <summary>
         /// Помечает все экшены, названия которых дублируются в формате "(№) DisplayName"

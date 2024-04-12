@@ -41,7 +41,7 @@ namespace PmEngine.Core.SessionElements
         /// Действие ввода информации
         /// Устанавливается, после чего введенная пользователем информация вызовет это действие и введенный текст отправится в InputData
         /// </summary>
-        public IActionWrapper? InputAction { get; set; }
+        public ActionWrapper? InputAction { get; set; }
 
         /// <summary>
         /// Информация о пользователе из БД. Загружается при каждом (!) вызове. Если нужно вызвать более одного раза, считайте это в отдельную переменную и используйте её или CachedData.
@@ -70,7 +70,7 @@ namespace PmEngine.Core.SessionElements
         /// <summary>
         /// Текущее действие пользователя
         /// </summary>
-        public virtual IActionWrapper? CurrentAction { get; set; }
+        public virtual ActionWrapper? CurrentAction { get; set; }
 
         /// <summary>
         /// Список следующих действий пользователя

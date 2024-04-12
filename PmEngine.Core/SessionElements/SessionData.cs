@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using PmEngine.Core.BaseMarkups;
+﻿using PmEngine.Core.BaseMarkups;
 using PmEngine.Core.Interfaces;
 
 namespace PmEngine.Core.SessionElements
@@ -39,7 +38,7 @@ namespace PmEngine.Core.SessionElements
 
         public ActionWrapper Wrap(IServiceProvider serviceProvider)
         {
-            var result = new ActionWrapper(DisplayName, ActionName, new ActionArguments(Arguments));
+            var result = new ActionWrapper(DisplayName, ActionName, new Arguments(Arguments));
 
             return result;
         }
@@ -49,11 +48,11 @@ namespace PmEngine.Core.SessionElements
 
         }
 
-        public ActionWrapperSaveModel(IActionWrapper actionWrapper)
+        public ActionWrapperSaveModel(ActionWrapper actionWrapper)
         {
             ActionName = actionWrapper.ActionType?.ToString() ?? actionWrapper.ActionTypeName ?? null;
             DisplayName = actionWrapper.DisplayName;
-            Arguments = actionWrapper.Arguments.ToDict();
+            Arguments = actionWrapper.Arguments.Source;
         }
     }
 }

@@ -27,7 +27,7 @@ namespace PmEngine.Core
         /// <summary>
         /// Агрументы для начального действия
         /// </summary>
-        public IActionArguments StartArguments { get; set; } = new ActionArguments();
+        public Arguments StartArguments { get; set; } = new Arguments();
 
         /// <summary>
         /// Используемый DataProvider

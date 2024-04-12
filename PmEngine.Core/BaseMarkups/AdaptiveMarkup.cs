@@ -15,7 +15,7 @@ namespace PmEngine.Core.BaseMarkups
         /// <summary>
         /// Аргументы
         /// </summary>
-        public IActionArguments Arguments { get; set; } = new ActionArguments();
+        public Arguments Arguments { get; set; } = new Arguments();
 
         /// <summary>
         /// Базовая разметка
@@ -26,7 +26,7 @@ namespace PmEngine.Core.BaseMarkups
         /// Базовая разметка с указанием списка действий
         /// </summary>
         /// <param name="actions">Действия</param>
-        public AdaptiveMarkup(IEnumerable<IActionWrapper> actions)
+        public AdaptiveMarkup(IEnumerable<ActionWrapper> actions)
         {
             Actions = actions.ToList();
         }
@@ -44,24 +44,24 @@ namespace PmEngine.Core.BaseMarkups
         /// <summary>
         /// Действия
         /// </summary>
-        public List<IActionWrapper> Actions { get; set; } = new();
+        public List<ActionWrapper> Actions { get; set; } = new();
 
         /// <summary>
         /// Получить действия
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<IEnumerable<IActionWrapper>> GetNextActions()
+        public IEnumerable<IEnumerable<ActionWrapper>> GetNextActions()
         {
             if (Actions.Count > MinimumCount)
             {
-                var newList = new List<List<IActionWrapper>>();
-                var temp = new List<IActionWrapper>();
+                var newList = new List<List<ActionWrapper>>();
+                var temp = new List<ActionWrapper>();
                 foreach (var act in Actions)
                 {
                     if (temp.Count == BlockSize)
                     {
                         newList.Add(temp);
-                        temp = new List<IActionWrapper>();
+                        temp = new List<ActionWrapper>();
                     }
                     temp.Add(act);
                 }
@@ -71,14 +71,14 @@ namespace PmEngine.Core.BaseMarkups
                 return newList;
             }
             else
-                return Actions.Select(a => new IActionWrapper[] { a });
+                return Actions.Select(a => new ActionWrapper[] { a });
         }
 
         /// <summary>
         /// Добавить действие
         /// </summary>
         /// <param name="action"></param>
-        public void Add(IActionWrapper action)
+        public void Add(ActionWrapper action)
         {
             Actions.Add(action);
         }
@@ -89,7 +89,7 @@ namespace PmEngine.Core.BaseMarkups
         /// <param name="displayName"></param>
         /// <param name="actionClass"></param>
         /// <param name="arguments"></param>
-        public IActionWrapper Add(string displayName, Type actionClass, IActionArguments? arguments = null)
+        public ActionWrapper Add(string displayName, Type actionClass, Arguments? arguments = null)
         {
             var ar = arguments is null ? new ActionWrapper(displayName, actionClass) : new ActionWrapper(displayName, actionClass, arguments);
             Actions.Add(ar);
@@ -100,7 +100,7 @@ namespace PmEngine.Core.BaseMarkups
         /// 
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<IActionWrapper> GetFloatNextActions()
+        public IEnumerable<ActionWrapper> GetFloatNextActions()
         {
             return Actions.ToArray();
         }

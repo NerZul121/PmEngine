@@ -1,27 +1,25 @@
 ﻿namespace PmEngine.Core.Interfaces
 {
 	/// <summary>
-	/// Интерфейс описывающий выполнение какого-либо действия пользователем.
+	/// Some action
 	/// </summary>
 	public interface IAction
 	{
         /// <summary>
-        /// Выполнить действие пользователя
+        /// Execute action
         /// </summary>
-        /// <param name="currentAction">Текущее действие пользователя</param>
-        /// <param name="user">Сессия пользователя</param>
-        /// <param name="arguments">Доп. параметры действия</param>
-        /// <returns>Список следующих действий</returns>
-        public Task<INextActionsMarkup?> DoAction(IActionWrapper currentAction, IUserSession user, IActionArguments arguments);
+        /// <param name="currentAction">this action data</param>
+        /// <param name="user">user session</param>
+        /// <returns>next available actions to user</returns>
+        public Task<INextActionsMarkup?> DoAction(ActionWrapper currentAction, IUserSession user);
 
         /// <summary>
-        /// Действие после выполнения экшена
+        /// After action
         /// </summary>
-        /// <param name="currentAction"></param>
-        /// <param name="user"></param>
-        /// <param name="arguments"></param>
+        /// <param name="currentAction">current action</param>
+        /// <param name="user">user session</param>
         /// <returns></returns>
-        public Task AfterAction(IActionWrapper currentAction, IUserSession user, IActionArguments arguments)
+        public Task AfterAction(ActionWrapper currentAction, IUserSession user)
         {
             return Task.CompletedTask;
         }

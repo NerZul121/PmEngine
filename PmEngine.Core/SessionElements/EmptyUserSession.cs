@@ -13,9 +13,9 @@ namespace PmEngine.Core.SessionElements
 
         private UserEntity _data = new UserEntity() { Id = -99 };
 
-        public IActionWrapper? InputAction { get; set; }
+        public ActionWrapper? InputAction { get; set; }
         public INextActionsMarkup? NextActions { get; set; }
-        public IActionWrapper? CurrentAction { get; set; }
+        public ActionWrapper? CurrentAction { get; set; }
         public string? OutputContent { get; set; }
         public IEnumerable<object>? Media { get; set; }
 
@@ -23,9 +23,9 @@ namespace PmEngine.Core.SessionElements
 
         public IOutputManager Output { get; set; }
 
-        IActionWrapper? IUserSession.InputAction { get; set; }
+        ActionWrapper? IUserSession.InputAction { get; set; }
         INextActionsMarkup? IUserSession.NextActions { get; set; }
-        IActionWrapper? IUserSession.CurrentAction { get; set; }
+        ActionWrapper? IUserSession.CurrentAction { get; set; }
         string? IUserSession.OutputContent { get; set; }
         IEnumerable<object>? IUserSession.Media { get; set; }
         IServiceScope IUserSession.Scope { get; set; }

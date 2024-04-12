@@ -11,7 +11,7 @@
         /// <param name="user">ID пользователя</param>
         /// <param name="action">действие</param>
         /// <returns></returns>
-        public Task Handle(IUserSession user, IActionWrapper action);
+        public Task Handle(IUserSession user, ActionWrapper action);
     }
 
     /// <summary>
@@ -25,6 +25,6 @@
         /// <param name="user">ID пользователя</param>
         /// <param name="action">Действие</param>
         /// <returns></returns>
-        public Task Handle(IUserSession user, IActionWrapper action);
+        public Task Handle(IUserSession user, ActionWrapper action);
     }
 }
