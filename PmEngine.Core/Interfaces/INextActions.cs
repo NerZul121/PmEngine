@@ -53,5 +53,26 @@
 
             return this;
         }
+
+        /// <summary>
+        /// Add action to actions
+        /// </summary>
+        /// <param name="action"></param>
+        public void Add(ActionWrapper action);
+
+        /// <summary>
+        /// Add action
+        /// </summary>
+        /// <param name="displayName"></param>
+        /// <param name="actionClass"></param>
+        /// <param name="arguments"></param>
+        public ActionWrapper Add(string displayName, Type actionClass, Arguments? arguments = null);
+
+        /// <summary>
+        /// Add action
+        /// </summary>
+        /// <param name="displayName"></param>
+        /// <param name="arguments"></param>
+        public ActionWrapper Add<T>(string displayName, Arguments? arguments = null) where T : ActionWrapper;
     }
 }

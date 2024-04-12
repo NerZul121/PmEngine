@@ -1,4 +1,5 @@
 ﻿using PmEngine.Core.Interfaces;
+using System;
 
 namespace PmEngine.Core.BaseMarkups
 {
@@ -56,6 +57,25 @@ namespace PmEngine.Core.BaseMarkups
             result.AddRange(Body.GetFloatNextActions());
             result.AddRange(Footer.GetFloatNextActions());
             return result;
+        }
+
+        public void Add(ActionWrapper action)
+        {
+            Body.Add(action);
+        }
+
+        public ActionWrapper Add(string displayName, Type actionClass, Arguments? arguments = null)
+        {
+            var na = new ActionWrapper(displayName, actionClass, arguments ?? new());
+            Body.Add(na);
+            return na;
+        }
+
+        public ActionWrapper Add<T>(string displayName, Arguments? arguments = null) where T : ActionWrapper
+        {
+            var na = new ActionWrapper(displayName, typeof(T), arguments ?? new());
+            Body.Add(na);
+            return na;
         }
 
         /// <summary>

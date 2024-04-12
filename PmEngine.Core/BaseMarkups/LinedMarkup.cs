@@ -87,5 +87,17 @@ namespace PmEngine.Core.BaseMarkups
             Actions.Last().Add(ar);
             return ar;
         }
+
+        public void Add(ActionWrapper action)
+        {
+            Actions.Last().Add(action);
+        }
+
+        public ActionWrapper Add<T>(string displayName, Arguments? arguments = null) where T : ActionWrapper
+        {
+            var ar = arguments is null ? new ActionWrapper(displayName, typeof(T)) : new ActionWrapper(displayName, typeof(T), arguments);
+            Actions.Last().Add(ar);
+            return ar;
+        }
     }
 }

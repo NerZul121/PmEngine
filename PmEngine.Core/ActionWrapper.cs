@@ -21,7 +21,7 @@ namespace PmEngine.Core
         /// <summary>
         /// Список следующих действий
         /// </summary>
-        public INextActionsMarkup NextActions { get; set; } = new BaseMarkup();
+        public INextActionsMarkup NextActions { get; set; } = new SingleMarkup();
 
         /// <summary>
         /// Отображаемое имя действия

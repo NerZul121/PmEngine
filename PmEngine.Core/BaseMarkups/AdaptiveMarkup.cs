@@ -97,6 +97,18 @@ namespace PmEngine.Core.BaseMarkups
         }
 
         /// <summary>
+        /// Добавить действие
+        /// </summary>
+        /// <param name="displayName"></param>
+        /// <param name="arguments"></param>
+        public ActionWrapper Add<T>(string displayName, Arguments? arguments = null) where T : ActionWrapper
+        {
+            var ar = arguments is null ? new ActionWrapper(displayName, typeof(T)) : new ActionWrapper(displayName, typeof(T), arguments);
+            Actions.Add(ar);
+            return ar;
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
