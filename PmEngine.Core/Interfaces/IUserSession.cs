@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using PmEngine.Core.BaseClasses;
 using PmEngine.Core.Entities;
 
@@ -26,6 +27,7 @@ namespace PmEngine.Core.Interfaces
         public DateTime SessionCreateTime { get; }
         public IOutputManager Output { get; }
         public void AddToOutput(string text);
+        public ILogger Logger { get; set; }
 
         public async Task ActionProcess(ActionWrapper action)
         {

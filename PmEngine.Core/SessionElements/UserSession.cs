@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using PmEngine.Core.BaseClasses;
 using PmEngine.Core.Entities;
 using PmEngine.Core.Interfaces;
@@ -16,6 +17,8 @@ namespace PmEngine.Core.SessionElements
         public IOutputManager? DefaultOutput { get; set; }
 
         public IServiceScope Scope { get; set; }
+
+        public ILogger Logger { get; set; }
 
         /// <summary>
         /// Сервисы в скопе пользователя
@@ -97,6 +100,7 @@ namespace PmEngine.Core.SessionElements
             var scopeData = Services.GetRequiredService<IUserScopeData>();
             scopeData.Owner = this;
             scopeData.Services = Services;
+            Logger = Services.GetRequiredService<ILogger>();
 
             Id = user.Id;
             var engine = services.GetRequiredService<IEngineConfigurator>();
@@ -125,14 +129,17 @@ namespace PmEngine.Core.SessionElements
         /// <returns>Значение переменной</returns>
         public T? GetLocal<T>(string name)
         {
+            T? value = default;
             try
             {
                 if (Locals.ContainsKey(name))
-                    return (T)Locals[name];
+                    value = (T)Locals[name];
             }
             catch { }
 
-            return default;
+            Logger.LogInformation($"User{Id} - GetLocal {name}: {value}");
+
+            return value;
         }
 
         /// <summary>
@@ -145,6 +152,7 @@ namespace PmEngine.Core.SessionElements
             if (value is null)
                 try
                 {
+                    Logger.LogInformation($"User{Id} - SetLocal {name}: {value}");
                     Locals.Remove(name);
                 }
                 catch { }
@@ -197,6 +205,7 @@ namespace PmEngine.Core.SessionElements
 
         public void Dispose()
         {
+            Logger.LogInformation($"User{Id} - Disposing...");
             Scope.Dispose();
         }
 
