@@ -62,10 +62,12 @@ namespace PmEngine.Core
 
                         if (at is null)
                             result = action.NextActions;
+                        else
+                            action.ActionType = at.GetType();
                     }
-                    else if (action.ActionType.GetInterface("IAction") == null)
+                    
+                    if (action.ActionType.GetInterface("IAction") == null)
                         throw new Exception(action.ActionType + " не реализует интерфейс IAction.");
-
                     else
                     {
                         iaction = (IAction?)Activator.CreateInstance(action.ActionType);
