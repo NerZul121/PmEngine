@@ -149,10 +149,11 @@ namespace PmEngine.Core.SessionElements
         /// <param name="value">Значение</param>
         public void SetLocal(string name, object? value)
         {
+            Logger.LogInformation($"User{Id} - SetLocal {name}: {value}");
+
             if (value is null)
                 try
                 {
-                    Logger.LogInformation($"User{Id} - SetLocal {name}: {value}");
                     Locals.Remove(name);
                 }
                 catch { }
