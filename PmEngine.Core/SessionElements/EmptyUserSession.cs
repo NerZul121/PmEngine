@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using PmEngine.Core.BaseClasses;
 using PmEngine.Core.Entities;
 using PmEngine.Core.Interfaces;
@@ -34,6 +35,7 @@ namespace PmEngine.Core.SessionElements
         DateTime IUserSession.SessionCreateTime { get; } = DateTime.Now;
 
         IOutputManager IUserSession.Output { get; }
+        public ILogger Logger { get; set; }
 
         public void AddToOutput(string text)
         {
