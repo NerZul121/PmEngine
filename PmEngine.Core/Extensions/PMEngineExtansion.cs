@@ -90,6 +90,6 @@ namespace PmEngine.Core.Extensions
         public static void ConfigureEngine(this IApplicationBuilder app)
         {
             app.ApplicationServices.GetRequiredService<IEngineConfigurator>().Configure(app.ApplicationServices).Wait();
-        }
+        } 
     }
 }

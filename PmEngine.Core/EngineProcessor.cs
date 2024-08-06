@@ -3,9 +3,9 @@ using PmEngine.Core.Interfaces.Events;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using PmEngine.Core.Extensions;
-using System.Text.Json;
 using PmEngine.Core.SessionElements;
 using PmEngine.Core.Actions;
+using Newtonsoft.Json;
 
 namespace PmEngine.Core
 {
@@ -36,8 +36,9 @@ namespace PmEngine.Core
         {
             try
             {
-                _logger.LogInformation($"{userSession}: {action.DisplayName} ({action.ActionType} {action.ActionTypeName})");
+                userSession.Logger.LogInformation($"{userSession}: {action.DisplayName} ({action.ActionType} {action.ActionTypeName})");
 
+                userSession.SetLocal("LastNextActions", userSession.NextActions);
                 userSession.NextActions = null;
                 userSession.CurrentAction = action;
                 userSession.InputAction = null;
@@ -63,7 +64,7 @@ namespace PmEngine.Core
                         if (at is null)
                             result = action.NextActions;
                         else
-                            action.ActionType = at.GetType();
+                            action.ActionType = at;
                     }
                     
                     if (action.ActionType.GetInterface("IAction") == null)
@@ -109,7 +110,7 @@ namespace PmEngine.Core
                     await _services.InContext(async (context) =>
                     {
                         var userData = await userSession.Reload(context);
-                        userData.SessionData = userSession.NextActions is null ? null : JsonSerializer.Serialize(new SessionData(userSession.NextActions));
+                        userData.SessionData = userSession.NextActions is null ? null : JsonConvert.SerializeObject(new SessionData(userSession.NextActions));
                         await context.SaveChangesAsync();
                     });
                 }

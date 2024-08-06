@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using PmEngine.Core.BaseClasses;
 using PmEngine.Core.Entities;
 using PmEngine.Core.Interfaces;
 using PmEngine.Core.Interfaces.Events;
-using System.Text.Json;
 
 namespace PmEngine.Core.SessionElements
 {
@@ -107,7 +107,7 @@ namespace PmEngine.Core.SessionElements
 
             if (engine.Properties.EnableStateless && !string.IsNullOrEmpty(user.SessionData))
             {
-                var sessionData = JsonSerializer.Deserialize<SessionData>(user.SessionData);
+                var sessionData = JsonConvert.DeserializeObject<SessionData>(user.SessionData);
                 NextActions = sessionData.NextActions(services);
             }
             else
