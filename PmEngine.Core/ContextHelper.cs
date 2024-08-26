@@ -33,7 +33,7 @@ namespace PmEngine.Core
             try
             {
                 using var scope = _services.CreateScope();
-                using var context = scope.ServiceProvider.GetServices<IDataContext>().First(c => c.GetType() == typeof(BaseContext)) as BaseContext;
+                using var context = scope.ServiceProvider.GetRequiredService<IDataContext>() as BaseContext;
                 await action(context);
             }
             catch (Exception ex)
