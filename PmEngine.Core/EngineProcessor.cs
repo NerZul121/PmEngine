@@ -2,10 +2,7 @@
 using PmEngine.Core.Interfaces.Events;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
-using PmEngine.Core.Extensions;
-using PmEngine.Core.SessionElements;
 using PmEngine.Core.Actions;
-using Newtonsoft.Json;
 
 namespace PmEngine.Core
 {
@@ -103,17 +100,6 @@ namespace PmEngine.Core
 
                 await userSession.MarkOnline();
                 await MakeEvent<IActionProcessAfterOutputEventHandler>((handler) => handler.Handle(userSession, action));
-
-                var engine = _services.GetRequiredService<IEngineConfigurator>();
-                if (engine.Properties.EnableStateless)
-                {
-                    await _services.InContext(async (context) =>
-                    {
-                        var userData = await userSession.Reload(context);
-                        userData.SessionData = userSession.NextActions is null ? null : JsonConvert.SerializeObject(new SessionData(userSession.NextActions));
-                        await context.SaveChangesAsync();
-                    });
-                }
             }
             catch (Exception ex)
             {

@@ -1,4 +1,7 @@
-﻿namespace PmEngine.Core
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
+namespace PmEngine.Core
 {
     /// <summary>
     /// Action arguments.
@@ -36,19 +39,29 @@
         /// <returns>Value</returns>
         public T? Get<T>(string key)
         {
+            object? objValue;
+
             if (Source.TryGetValue(key, out object? firstVal))
-                return (T?)firstVal;
+                objValue = firstVal;
             else if (Source.TryGetValue(key.ToLower(), out object? secondVal))
-                return (T?)secondVal;
+                objValue = secondVal;
             else
             {
                 var val = Source.FirstOrDefault(d => d.Key.ToLower() == key.ToLower()).Value;
 
                 if (val is null)
-                    return default;
-
-                return (T?)val;
+                    objValue = default;
+                else
+                    objValue = val;
             }
+
+            if (objValue is not null && objValue is JObject jsonValue)
+                return JsonConvert.DeserializeObject<T>(jsonValue.ToString());
+
+            if (objValue is null)
+                return default;
+
+            return (T?)objValue;
         }
 
         /// <summary>

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using PmEngine.Core.BaseClasses;
 using PmEngine.Core.Entities;
+using PmEngine.Core.Extensions;
 using PmEngine.Core.Interfaces;
 using PmEngine.Core.Interfaces.Events;
 
@@ -78,7 +79,27 @@ namespace PmEngine.Core.SessionElements
         /// <summary>
         /// Список следующих действий пользователя
         /// </summary>
-        public virtual INextActionsMarkup? NextActions { get; set; }
+        public virtual INextActionsMarkup? NextActions
+        {
+            get { return _nextActions; }
+            set
+            {
+                _nextActions = value;
+
+                var engine = Services.GetRequiredService<IEngineConfigurator>();
+                if (engine.Properties.EnableStateless)
+                {
+                    Services.InContext(async (context) =>
+                    {
+                        var userData = await Reload(context);
+                        userData.SessionData = _nextActions is null ? null : JsonConvert.SerializeObject(new SessionData(value));
+                        await context.SaveChangesAsync();
+                    }).Wait();
+                }
+            }
+        }
+
+        private INextActionsMarkup? _nextActions;
 
         /// <summary>
         /// Временные переменные, подобно Cookies. Очищаются вместе с сессией.
