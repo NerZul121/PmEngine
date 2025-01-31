@@ -33,12 +33,14 @@ namespace PmEngine.Core.SessionElements
     {
         public string? ActionName { get; set; }
         public string DisplayName { get; set; }
-        
+        public string GUID { get; set; }
+
         public Dictionary<String, Object> Arguments { get; set; }
 
         public ActionWrapper Wrap(IServiceProvider serviceProvider)
         {
             var result = new ActionWrapper(DisplayName, ActionName, new Arguments(Arguments));
+            result.GUID = GUID;
 
             return result;
         }
@@ -53,6 +55,7 @@ namespace PmEngine.Core.SessionElements
             ActionName = actionWrapper.ActionType?.ToString() ?? actionWrapper.ActionTypeName ?? null;
             DisplayName = actionWrapper.DisplayName;
             Arguments = actionWrapper.Arguments.Source;
+            GUID = actionWrapper.GUID;
         }
     }
 }

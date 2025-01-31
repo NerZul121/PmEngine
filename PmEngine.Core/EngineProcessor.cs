@@ -80,12 +80,12 @@ namespace PmEngine.Core
                 if (result is not null && result.GetNextActions().Any())
                     userSession.NextActions = result;
 
+                await MakeEvent<IActionProcessAfterEventHandler>((handler) => handler.Handle(userSession, action));
+
                 var output = userSession.OutputContent + action.ActionText;
 
                 if (string.IsNullOrEmpty(output))
                     output = null;
-
-                await MakeEvent<IActionProcessAfterEventHandler>((handler) => handler.Handle(userSession, action));
 
                 int msgId = -1;
                 if (!String.IsNullOrEmpty(output) || userSession.Media is not null && userSession.Media.Any())

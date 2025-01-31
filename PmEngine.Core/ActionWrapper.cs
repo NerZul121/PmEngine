@@ -11,7 +11,7 @@ namespace PmEngine.Core
         /// <summary>
         /// ГУИД как идентификатор действия
         /// </summary>
-        public string GUID { get; } = Guid.NewGuid().ToString();
+        public string GUID { get; set; } = Guid.NewGuid().ToString();
 
         /// <summary>
         /// Видно-ли действие пользователю
