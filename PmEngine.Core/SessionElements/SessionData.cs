@@ -6,6 +6,8 @@ namespace PmEngine.Core.SessionElements
     public class SessionData
     {
         public IEnumerable<IEnumerable<ActionWrapperSaveModel>>? Actions { get; set; }
+        public ActionWrapperSaveModel? InputAction { get; set; }
+        public ActionWrapperSaveModel? CurrentAction { get; set; }
 
         public INextActionsMarkup? NextActions(IServiceProvider serviceProvider)
         {
@@ -17,15 +19,18 @@ namespace PmEngine.Core.SessionElements
 
         public SessionData()
         {
-
         }
 
-        public SessionData(INextActionsMarkup? actions)
+        public SessionData(IUserSession user)
         {
-            if (actions is null)
-                Actions = null;
-
-            Actions = actions.GetNextActions().Select(s => s.Select(a => new ActionWrapperSaveModel(a)));
+            Actions = user.NextActions?.GetNextActions().Select(s => s.Select(a => new ActionWrapperSaveModel(a)));
+            CurrentAction = user.CurrentAction is null ? null : new ActionWrapperSaveModel()
+            {
+                DisplayName = user.CurrentAction.DisplayName,
+                ActionName = user.CurrentAction.ActionType?.ToString() ?? user.CurrentAction.ActionTypeName ?? null,
+                GUID = user.CurrentAction.GUID,
+            };
+            InputAction = user.InputAction is null ? null : new ActionWrapperSaveModel(user.InputAction);
         }
     }
 

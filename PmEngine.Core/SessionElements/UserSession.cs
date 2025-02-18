@@ -41,11 +41,31 @@ namespace PmEngine.Core.SessionElements
         /// </summary>
         public long Id;
 
+        private ActionWrapper? _inputAction;
+
         /// <summary>
         /// Действие ввода информации
         /// Устанавливается, после чего введенная пользователем информация вызовет это действие и введенный текст отправится в InputData
         /// </summary>
-        public ActionWrapper? InputAction { get; set; }
+        public ActionWrapper? InputAction
+        {
+            get { return _inputAction; }
+            set
+            {
+                _inputAction = value;
+
+                var engine = Services.GetRequiredService<IEngineConfigurator>();
+                if (engine.Properties.EnableStateless)
+                {
+                    Services.InContext(async (context) =>
+                    {
+                        var userData = await Reload(context);
+                        userData.SessionData = JsonConvert.SerializeObject(new SessionData(this));
+                        await context.SaveChangesAsync();
+                    }).Wait();
+                }
+            }
+        }
 
         /// <summary>
         /// Информация о пользователе из БД. Загружается при каждом (!) вызове. Если нужно вызвать более одного раза, считайте это в отдельную переменную и используйте её или CachedData.
@@ -71,10 +91,30 @@ namespace PmEngine.Core.SessionElements
         /// </summary>
         public UserEntity CachedData { get { if (_cache is null) _cache = Data; return _cache; } }
 
+        private ActionWrapper? _currentAction;
+
         /// <summary>
         /// Текущее действие пользователя
         /// </summary>
-        public virtual ActionWrapper? CurrentAction { get; set; }
+        public virtual ActionWrapper? CurrentAction
+        {
+            get { return _currentAction; }
+            set
+            {
+                _currentAction = value;
+
+                var engine = Services.GetRequiredService<IEngineConfigurator>();
+                if (engine.Properties.EnableStateless)
+                {
+                    Services.InContext(async (context) =>
+                    {
+                        var userData = await Reload(context);
+                        userData.SessionData = JsonConvert.SerializeObject(new SessionData(this));
+                        await context.SaveChangesAsync();
+                    }).Wait();
+                }
+            }
+        }
 
         /// <summary>
         /// Список следующих действий пользователя
@@ -92,7 +132,7 @@ namespace PmEngine.Core.SessionElements
                     Services.InContext(async (context) =>
                     {
                         var userData = await Reload(context);
-                        userData.SessionData = _nextActions is null ? null : JsonConvert.SerializeObject(new SessionData(value));
+                        userData.SessionData = JsonConvert.SerializeObject(new SessionData(this));
                         await context.SaveChangesAsync();
                     }).Wait();
                 }
@@ -130,6 +170,8 @@ namespace PmEngine.Core.SessionElements
             {
                 var sessionData = JsonConvert.DeserializeObject<SessionData>(user.SessionData);
                 NextActions = sessionData.NextActions(services);
+                sessionData.CurrentAction = sessionData.CurrentAction;
+                sessionData.InputAction = sessionData.InputAction;
             }
             else
             {
