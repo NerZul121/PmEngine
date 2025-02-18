@@ -37,7 +37,6 @@
 	  <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.*" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="8.*" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.*" />
-	  <PackageReference Include="Newtonsoft.Json" Version="13.*" />
 	  <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.*" />
 	</ItemGroup>
 

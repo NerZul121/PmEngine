@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using PmEngine.Core.BaseClasses;
 using PmEngine.Core.Entities;
 using PmEngine.Core.Extensions;
 using PmEngine.Core.Interfaces;
 using PmEngine.Core.Interfaces.Events;
+using System.Text.Json;
 
 namespace PmEngine.Core.SessionElements
 {
@@ -60,7 +60,7 @@ namespace PmEngine.Core.SessionElements
                     Services.InContext(async (context) =>
                     {
                         var userData = await Reload(context);
-                        userData.SessionData = JsonConvert.SerializeObject(new SessionData(this));
+                        userData.SessionData = JsonSerializer.Serialize(new SessionData(this));
                         await context.SaveChangesAsync();
                     }).Wait();
                 }
@@ -109,7 +109,7 @@ namespace PmEngine.Core.SessionElements
                     Services.InContext(async (context) =>
                     {
                         var userData = await Reload(context);
-                        userData.SessionData = JsonConvert.SerializeObject(new SessionData(this));
+                        userData.SessionData = JsonSerializer.Serialize(new SessionData(this));
                         await context.SaveChangesAsync();
                     }).Wait();
                 }
@@ -132,7 +132,7 @@ namespace PmEngine.Core.SessionElements
                     Services.InContext(async (context) =>
                     {
                         var userData = await Reload(context);
-                        userData.SessionData = JsonConvert.SerializeObject(new SessionData(this));
+                        userData.SessionData = JsonSerializer.Serialize(new SessionData(this));
                         await context.SaveChangesAsync();
                     }).Wait();
                 }
@@ -168,7 +168,7 @@ namespace PmEngine.Core.SessionElements
 
             if (engine.Properties.EnableStateless && !string.IsNullOrEmpty(user.SessionData))
             {
-                var sessionData = JsonConvert.DeserializeObject<SessionData>(user.SessionData);
+                var sessionData = JsonSerializer.Deserialize<SessionData>(user.SessionData);
                 NextActions = sessionData.NextActions(services);
                 sessionData.CurrentAction = sessionData.CurrentAction;
                 sessionData.InputAction = sessionData.InputAction;

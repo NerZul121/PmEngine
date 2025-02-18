@@ -22,9 +22,9 @@ namespace PmEngine.Core.Actions
             var props = user.Services.GetRequiredService<IEngineConfigurator>().Properties;
 
             if (string.IsNullOrEmpty(props.InitializationActionName))
-                return new SingleMarkup(new[] { new ActionWrapper("Menue", props.InitializationAction) });
+                return new SingleMarkup([new ActionWrapper("Menue", props.InitializationAction)]);
             else
-                return new SingleMarkup(new[] { new ActionWrapper("Menue", props.InitializationActionName) });
+                return new SingleMarkup([new ActionWrapper("Menue", props.InitializationActionName)]);
         }
     }
 }

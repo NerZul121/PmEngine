@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace PmEngine.Core
 {
@@ -55,8 +55,14 @@ namespace PmEngine.Core
                     objValue = val;
             }
 
-            if (objValue is not null && objValue is JObject jsonValue)
-                return JsonConvert.DeserializeObject<T>(jsonValue.ToString());
+            if (objValue is not null && objValue is JsonObject jsonValue)
+                return JsonSerializer.Deserialize<T>(jsonValue.ToString());
+
+            try
+            {
+                return JsonSerializer.Deserialize<T>(objValue.ToString());
+            }
+            catch { }
 
             if (objValue is null)
                 return default;
