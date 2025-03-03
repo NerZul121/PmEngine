@@ -23,7 +23,7 @@ namespace PmEngine.Core.BaseClasses
         public virtual void Registrate(IServiceCollection services)
         {
             var allTypes = GetType().Assembly.GetTypes().Where(s => !s.IsAbstract && !s.IsInterface && s != null);
-            var interfaces = new Type[] { typeof(IDaemon), typeof(ICommand), typeof(IManager), typeof(IEventHandler), typeof(IAction), typeof(IDataEntity), typeof(IOutputManager) };
+            var interfaces = new Type[] { typeof(IDaemon), typeof(ICommand), typeof(IManager), typeof(IEventHandler), typeof(IAction), typeof(IDataEntity), typeof(IOutputManager), typeof(ITextRefactor) };
 
             foreach (var i in interfaces)
                 RegistrateInterfaceImplemetions(i, allTypes, services);
@@ -65,7 +65,7 @@ namespace PmEngine.Core.BaseClasses
                         services.AddScoped(typeof(IOutputManager), type);
                         continue;
                     }
-                    
+
                     services.AddSingleton(interfacetype, type);
                 }
                 catch (Exception ex)
