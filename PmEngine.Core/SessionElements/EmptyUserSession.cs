@@ -67,9 +67,9 @@ namespace PmEngine.Core.SessionElements
             return Task.CompletedTask;
         }
 
-        public Task<UserEntity> Reload(BaseContext context)
+        public UserEntity Reload(BaseContext context)
         {
-            throw new NotImplementedException();
+            return Data;
         }
 
         public void SetDefaultOutput<T>() where T : IOutputManager

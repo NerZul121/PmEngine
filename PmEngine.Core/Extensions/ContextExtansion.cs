@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PmEngine.Core.BaseClasses;
 using PmEngine.Core.Interfaces;
+using System.Threading.Tasks;
 
 namespace PmEngine.Core.Extensions
 {
@@ -28,6 +29,16 @@ namespace PmEngine.Core.Extensions
         public static async Task<T> InContext<T>(this IServiceProvider services, Func<BaseContext, Task<T>> func)
         {
             return await services.GetRequiredService<IContextHelper>().InContext(func);
+        }
+
+        public static void InContextSync(this IServiceProvider services, Action<BaseContext> act)
+        {
+            services.GetRequiredService<IContextHelper>().InContextSync(act);
+        }
+
+        public static T InContextSync<T>(this IServiceProvider services, Func<BaseContext, T> func)
+        {
+            return services.GetRequiredService<IContextHelper>().InContextSync(func);
         }
     }
 }

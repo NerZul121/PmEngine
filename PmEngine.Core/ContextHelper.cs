@@ -87,5 +87,19 @@ namespace PmEngine.Core
                 throw;
             }
         }
+
+        public void InContextSync(Action<BaseContext> act)
+        {
+            using var scope = _services.CreateScope();
+            using var context = (BaseContext)scope.ServiceProvider.GetServices<IDataContext>() as BaseContext;
+            act(context);
+        }
+
+        public T InContextSync<T>(Func<BaseContext, T> func)
+        {
+            using var scope = _services.CreateScope();
+            using var context = (BaseContext)scope.ServiceProvider.GetServices<IDataContext>() as BaseContext;
+            return func(context);
+        }
     }
 }

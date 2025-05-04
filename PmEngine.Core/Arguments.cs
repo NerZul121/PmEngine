@@ -56,16 +56,37 @@ namespace PmEngine.Core
             }
 
             if (objValue is not null && objValue is JsonObject jsonValue)
-                return JsonSerializer.Deserialize<T>(jsonValue.ToString());
+            {
+                try
+                {
+                    return JsonSerializer.Deserialize<T>(jsonValue.ToString());
+                }
+                catch { }
+
+                try
+                {
+                    return jsonValue.GetValue<T>();
+                }
+                catch { }
+            }
+
+            if (objValue is not null && objValue is JsonElement jsonElement)
+            {
+                try
+                {
+                    return JsonSerializer.Deserialize<T>(jsonElement);
+                }
+                catch { }
+            }
+
+            if (objValue is null)
+                return default;
 
             try
             {
                 return JsonSerializer.Deserialize<T>(objValue.ToString());
             }
             catch { }
-
-            if (objValue is null)
-                return default;
 
             return (T?)objValue;
         }

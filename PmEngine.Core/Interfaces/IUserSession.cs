@@ -10,7 +10,7 @@ namespace PmEngine.Core.Interfaces
         public long Id { get { return CachedData.Id; } }
         public UserEntity Data { get; }
         public UserEntity CachedData { get; }
-        public Task<UserEntity> Reload(BaseContext context);
+        public UserEntity Reload(BaseContext context);
         public ActionWrapper? InputAction { get; set; }
         public INextActionsMarkup? NextActions { get; set; }
         public ActionWrapper? CurrentAction { get; set; }

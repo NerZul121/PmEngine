@@ -57,12 +57,12 @@ namespace PmEngine.Core.SessionElements
                 var engine = Services.GetRequiredService<IEngineConfigurator>();
                 if (engine.Properties.EnableStateless)
                 {
-                    Services.InContext(async (context) =>
+                    Services.InContextSync(context =>
                     {
-                        var userData = await Reload(context);
+                        var userData = Reload(context);
                         userData.SessionData = JsonSerializer.Serialize(new SessionData(this));
-                        await context.SaveChangesAsync();
-                    }).Wait();
+                        context.SaveChangesAsync();
+                    });
                 }
             }
         }
@@ -77,10 +77,10 @@ namespace PmEngine.Core.SessionElements
         {
             get
             {
-                Services.GetRequiredService<IContextHelper>().InContext(async (context) =>
+                Services.InContextSync(async (context) =>
                 {
                     _cache = context.Set<UserEntity>().AsNoTracking().First(u => u.Id == Id);
-                }).Wait();
+                });
 
                 return _cache;
             }
@@ -106,12 +106,12 @@ namespace PmEngine.Core.SessionElements
                 var engine = Services.GetRequiredService<IEngineConfigurator>();
                 if (engine.Properties.EnableStateless)
                 {
-                    Services.InContext(async (context) =>
+                    Services.InContextSync(context =>
                     {
-                        var userData = await Reload(context);
+                        var userData = Reload(context);
                         userData.SessionData = JsonSerializer.Serialize(new SessionData(this));
-                        await context.SaveChangesAsync();
-                    }).Wait();
+                        context.SaveChanges();
+                    });
                 }
             }
         }
@@ -129,12 +129,12 @@ namespace PmEngine.Core.SessionElements
                 var engine = Services.GetRequiredService<IEngineConfigurator>();
                 if (engine.Properties.EnableStateless)
                 {
-                    Services.InContext(async (context) =>
+                    Services.InContextSync(context =>
                     {
-                        var userData = await Reload(context);
+                        var userData = Reload(context);
                         userData.SessionData = JsonSerializer.Serialize(new SessionData(this));
-                        await context.SaveChangesAsync();
-                    }).Wait();
+                        context.SaveChanges();
+                    });
                 }
             }
         }
@@ -181,7 +181,7 @@ namespace PmEngine.Core.SessionElements
                     CurrentAction = new ActionWrapper("Initialization", engine.Properties.InitializationAction, engine.Properties.StartArguments);
             }
 
-            services.GetRequiredService<IEngineProcessor>().MakeEvent<IUserSesseionInitializeEventHandler>(async (handler) => await handler.Handle(this)).Wait();
+            services.GetRequiredService<IEngineProcessor>().MakeEventSync<IUserSesseionInitializeEventHandler>((handler) => handler.Handle(this));
         }
 
         /// <summary>
@@ -224,9 +224,9 @@ namespace PmEngine.Core.SessionElements
                 Locals[name] = value;
         }
 
-        public async Task<UserEntity> Reload(BaseContext context)
+        public UserEntity Reload(BaseContext context)
         {
-            _cache = await context.Set<UserEntity>().FirstAsync(u => u.Id == Id);
+            _cache = context.Set<UserEntity>().First(u => u.Id == Id);
             return _cache;
         }
 
@@ -285,7 +285,7 @@ namespace PmEngine.Core.SessionElements
         {
             await Services.GetRequiredService<IContextHelper>().InContext(async (context) =>
             {
-                var user = await Reload(context);
+                var user = Reload(context);
                 user.LastOnlineDate = DateTime.Now;
                 await context.SaveChangesAsync();
             });

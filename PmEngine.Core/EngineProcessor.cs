@@ -194,5 +194,13 @@ namespace PmEngine.Core
             foreach (var handler in handlers)
                 await evnt(handler);
         }
+
+        public void MakeEventSync<T>(Action<T> evnt) where T : IEventHandler
+        {
+            var handlers = _services.GetServices<IEventHandler>().Where(s => s is T).Select(s => (T)s);
+
+            foreach (var handler in handlers)
+                evnt(handler);
+        }
     }
 }
