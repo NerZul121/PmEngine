@@ -91,14 +91,14 @@ namespace PmEngine.Core
         public void InContextSync(Action<BaseContext> act)
         {
             using var scope = _services.CreateScope();
-            using var context = (BaseContext)scope.ServiceProvider.GetServices<IDataContext>() as BaseContext;
+            using var context = (BaseContext)scope.ServiceProvider.GetRequiredService<IDataContext>();
             act(context);
         }
 
         public T InContextSync<T>(Func<BaseContext, T> func)
         {
             using var scope = _services.CreateScope();
-            using var context = (BaseContext)scope.ServiceProvider.GetServices<IDataContext>() as BaseContext;
+            using var context = (BaseContext)scope.ServiceProvider.GetRequiredService<IDataContext>();
             return func(context);
         }
     }
