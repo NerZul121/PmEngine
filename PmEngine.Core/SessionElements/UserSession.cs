@@ -61,7 +61,7 @@ namespace PmEngine.Core.SessionElements
                     {
                         var userData = Reload(context);
                         userData.SessionData = JsonSerializer.Serialize(new SessionData(this));
-                        context.SaveChangesAsync();
+                        context.SaveChanges();
                     });
                 }
             }
