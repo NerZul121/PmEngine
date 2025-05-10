@@ -35,6 +35,9 @@
         /// <returns></returns>
         public INextActionsMarkup NumeredDuplicates()
         {
+            if (!EngineProperties.NumerateDuplicates)
+                return this;
+
             var actions = GetFloatNextActions();
             var options = actions.GroupBy(s => s.DisplayName);
 

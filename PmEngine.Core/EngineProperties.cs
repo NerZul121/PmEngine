@@ -10,6 +10,11 @@ namespace PmEngine.Core
     public class EngineProperties
     {
         /// <summary>
+        /// Нумеровать-ли дубликаты действий
+        /// </summary>
+        public static bool NumerateDuplicates { get; set; } = false;
+
+        /// <summary>
         /// Сколько минут человек считается онлайн с последнего своего действия
         /// </summary>
         public int SessionLifeTime { get; set; } = 120;
