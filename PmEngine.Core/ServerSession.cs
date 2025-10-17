@@ -12,21 +12,23 @@ namespace PmEngine.Core
     /// <summary>
     /// Текущая сессия сервера
     /// </summary>
-    public class ServerSession : IServerSession
+    public class ServerSession 
     {
         private ILogger _logger;
         private IServiceProvider _services;
+        private PmEngine _engine;
 
-        public ServerSession(IServiceProvider services, ILogger logger)
+        public ServerSession(IServiceProvider services, ILogger logger, PmEngine engine)
         {
             _logger = logger;
             _services = services;
+            _engine = engine;
         }
 
         /// <summary>
         /// Активные сессии пользователей
         /// </summary>
-        public static ConcurrentDictionary<long, IUserSession> UserSessions { get; private set; } = new();
+        public ConcurrentDictionary<long, IUserSession> UserSessions { get; private set; } = new();
 
         /// <summary>
         /// Попытка взять сессию пользователя без её создания
@@ -46,10 +48,9 @@ namespace PmEngine.Core
         /// </summary>
         /// <param name="userId">ID пользователя</param>
         /// <returns></returns>
-        public virtual async Task<IUserSession> GetUserSession(long userId, Action<IUserSession>? init = null)
+        public virtual async Task<IUserSession> GetUserSession(long userId, Action<IUserSession>? init = null, Type? outputType = null, bool forceInit = true)
         {
             var session = UserSessions.ContainsKey(userId) ? UserSessions[userId] : null;
-            var engine = _services.GetRequiredService<IEngineConfigurator>();
 
             if (session is null)
             {
@@ -64,12 +65,18 @@ namespace PmEngine.Core
 
                 UserSessions[userId] = session;
 
+                if (outputType is not null)
+                    session.GetOutputOrCreate(outputType);
+
                 if (init != null)
                     init(session);
 
-                if (!engine.Properties.EnableStateless || String.IsNullOrEmpty(session.CachedData.SessionData))
-                    await _services.GetRequiredService<IEngineProcessor>().ActionProcess(session.CurrentAction, session);
+                if (forceInit)
+                    if (!_engine.Properties.EnableStateless || String.IsNullOrEmpty(session.CachedData.SessionData))
+                        await _services.GetRequiredService<IEngineProcessor>().ActionProcess(session.CurrentAction, session);
             }
+            else if (outputType is not null)
+                session.GetOutputOrCreate(outputType);
 
             return session;
         }

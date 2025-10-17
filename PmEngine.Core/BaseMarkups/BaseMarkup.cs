@@ -28,7 +28,7 @@ namespace PmEngine.Core.BaseMarkups
         /// <param name="actions"></param>
         public BaseMarkup(IEnumerable<ActionWrapper> actions)
         {
-            Actions = actions.Select(a => new List<ActionWrapper> { a }).ToList();
+            Actions = [.. actions.Select(a => new List<ActionWrapper> { a })];
         }
 
         /// <summary>
@@ -37,13 +37,13 @@ namespace PmEngine.Core.BaseMarkups
         /// <param name="actions"></param>
         public BaseMarkup(IEnumerable<IEnumerable<ActionWrapper>> actions)
         {
-            Actions = actions.Select(s => s.ToList()).ToList();
+            Actions = [.. actions.Select(s => s.ToList())];
         }
 
         /// <summary>
         /// Действия
         /// </summary>
-        public List<List<ActionWrapper>> Actions { get; set; } = new() { new() };
+        public List<List<ActionWrapper>> Actions { get; set; } = [[]];
 
         /// <summary>
         /// 

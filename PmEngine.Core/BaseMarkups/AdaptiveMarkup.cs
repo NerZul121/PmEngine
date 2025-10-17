@@ -28,7 +28,7 @@ namespace PmEngine.Core.BaseMarkups
         /// <param name="actions">Действия</param>
         public AdaptiveMarkup(IEnumerable<ActionWrapper> actions)
         {
-            Actions = actions.ToList();
+            Actions = [.. actions];
         }
 
         /// <summary>

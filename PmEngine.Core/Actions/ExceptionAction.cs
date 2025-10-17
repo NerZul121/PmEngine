@@ -19,12 +19,9 @@ namespace PmEngine.Core.Actions
         {
             user.AddToOutput("Sorry, but an error occurred. Report this to administrator.");
             user.AddToOutput(currentAction.Arguments.InputData ?? "");
-            var props = user.Services.GetRequiredService<IEngineConfigurator>().Properties;
+            var props = user.Services.GetRequiredService<PmEngine>().Properties;
 
-            if (string.IsNullOrEmpty(props.InitializationActionName))
-                return new SingleMarkup([new ActionWrapper("Menue", props.InitializationAction, props.StartArguments)]);
-            else
-                return new SingleMarkup([new ActionWrapper("Menue", props.InitializationActionName, props.StartArguments)]);
+            return new SingleMarkup([new ActionWrapper("Menu", props.InitializationAction, props.StartArguments)]);
         }
     }
 }

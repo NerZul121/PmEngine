@@ -13,13 +13,26 @@ namespace PmEngine.Core.SessionElements
     /// <summary>
     /// Сессия пользователя
     /// </summary>
-    public partial class UserSession : IUserSession
+    public class UserSession : IUserSession
     {
         public IOutputManager? DefaultOutput { get; set; }
-
-        public IServiceScope Scope { get; set; }
-
         public ILogger Logger { get; set; }
+        public PmEngine Engine
+        {
+            get
+            {
+                if (_engine is null)
+                    _engine = Services.GetRequiredService<PmEngine>();
+
+                return _engine;
+            }
+        }
+
+        internal protected List<IOutputManager> OutputManagersCache { get; set; } = [];
+
+        private PmEngine? _engine;
+
+        public Arguments LocalStore { get; } = new();
 
         /// <summary>
         /// Сервисы в скопе пользователя
@@ -54,8 +67,7 @@ namespace PmEngine.Core.SessionElements
             {
                 _inputAction = value;
 
-                var engine = Services.GetRequiredService<IEngineConfigurator>();
-                if (engine.Properties.EnableStateless)
+                if (Engine.Properties.EnableStateless)
                 {
                     Services.InContextSync(context =>
                     {
@@ -103,8 +115,7 @@ namespace PmEngine.Core.SessionElements
             {
                 _currentAction = value;
 
-                var engine = Services.GetRequiredService<IEngineConfigurator>();
-                if (engine.Properties.EnableStateless)
+                if (Engine.Properties.EnableStateless)
                 {
                     Services.InContextSync(context =>
                     {
@@ -126,8 +137,7 @@ namespace PmEngine.Core.SessionElements
             {
                 _nextActions = value;
 
-                var engine = Services.GetRequiredService<IEngineConfigurator>();
-                if (engine.Properties.EnableStateless)
+                if (Engine.Properties.EnableStateless)
                 {
                     Services.InContextSync(context =>
                     {
@@ -154,19 +164,18 @@ namespace PmEngine.Core.SessionElements
         /// Сессия пользователя
         /// </summary>
         /// <param name="user">ID пользователя</param>
-        public UserSession(IServiceProvider services, UserEntity user)
+        public UserSession(IServiceProvider services, UserEntity user, Action<IUserSession>? init = null)
         {
-            Scope = services.CreateScope();
-            Services = Scope.ServiceProvider;
-            var scopeData = Services.GetRequiredService<IUserScopeData>();
-            scopeData.Owner = this;
-            scopeData.Services = Services;
+            Services = services;
             Logger = Services.GetRequiredService<ILogger>();
 
             Id = user.Id;
-            var engine = services.GetRequiredService<IEngineConfigurator>();
+            _engine = services.GetRequiredService<PmEngine>();
 
-            if (engine.Properties.EnableStateless && !string.IsNullOrEmpty(user.SessionData))
+            if (init != null)
+                init(this);
+
+            if (Engine.Properties.EnableStateless && !string.IsNullOrEmpty(user.SessionData))
             {
                 var sessionData = JsonSerializer.Deserialize<SessionData>(user.SessionData);
                 NextActions = sessionData.NextActions(services);
@@ -174,12 +183,7 @@ namespace PmEngine.Core.SessionElements
                 sessionData.InputAction = sessionData.InputAction;
             }
             else
-            {
-                if (engine.Properties.InitializationAction is null)
-                    CurrentAction = new ActionWrapper("Initialization", engine.Properties.InitializationActionName, engine.Properties.StartArguments);
-                else
-                    CurrentAction = new ActionWrapper("Initialization", engine.Properties.InitializationAction, engine.Properties.StartArguments);
-            }
+                CurrentAction = new ActionWrapper("Initialization", Engine.Properties.InitializationAction, Engine.Properties.StartArguments);
 
             services.GetRequiredService<IEngineProcessor>().MakeEventSync<IUserSesseionInitializeEventHandler>((handler) => handler.Handle(this));
         }
@@ -192,16 +196,8 @@ namespace PmEngine.Core.SessionElements
         /// <returns>Значение переменной</returns>
         public T? GetLocal<T>(string name)
         {
-            T? value = default;
-            try
-            {
-                if (Locals.ContainsKey(name))
-                    value = (T)Locals[name];
-            }
-            catch { }
-
+            var value = LocalStore.Get<T>(name);
             Logger.LogInformation($"User{Id} - GetLocal {name}: {value}");
-
             return value;
         }
 
@@ -214,14 +210,7 @@ namespace PmEngine.Core.SessionElements
         {
             Logger.LogInformation($"User{Id} - SetLocal {name}: {value}");
 
-            if (value is null)
-                try
-                {
-                    Locals.Remove(name);
-                }
-                catch { }
-            else
-                Locals[name] = value;
+            LocalStore.Set(name, value);
         }
 
         public UserEntity Reload(BaseContext context)
@@ -230,34 +219,7 @@ namespace PmEngine.Core.SessionElements
             return _cache;
         }
 
-        public T GetOutput<T>() where T : IOutputManager
-        {
-            var output = Services.GetRequiredService<T>();
-            return output;
-        }
-
-        public IOutputManager GetOutput()
-        {
-            if (DefaultOutput is null)
-            {
-                var funcs = Services.GetRequiredService<IEngineConfigurator>().Properties.DefaultOutputSetter;
-                foreach (var func in funcs)
-                {
-                    var output = func(this);
-                    if (output != null)
-                    {
-                        DefaultOutput = output;
-                        break;
-                    }
-                }
-
-                DefaultOutput = Services.GetRequiredService<IOutputManager>();
-            }
-
-            return DefaultOutput;
-        }
-
-        public IOutputManager Output { get { return GetOutput(); } }
+        public IOutputManager Output { get { return DefaultOutput ?? throw new Exception("Output not setted."); } }
 
         public void AddToOutput(string add)
         {
@@ -270,12 +232,32 @@ namespace PmEngine.Core.SessionElements
         public void Dispose()
         {
             Logger.LogInformation($"User{Id} - Disposing...");
-            Scope.Dispose();
         }
 
-        public void SetDefaultOutput<T>() where T : IOutputManager
+        public IOutputManager GetOutputOrCreate(Type outputType)
         {
-            DefaultOutput = Services.GetRequiredService<T>();
+            var output = OutputManagersCache.FirstOrDefault(o => o.GetType() == outputType);
+            if (output is null)
+            {
+                var factory = Services.GetServices<IOutputManagerFactory>().FirstOrDefault(s => s.OutputType == outputType) ?? throw new Exception($"Cannot detected IOutputManagerFactory for {outputType}");
+                output = factory.CreateForUser(this);
+                DefaultOutput = output;
+            }
+
+            return output;
+        }
+
+        public T GetOutput<T>() where T : IOutputManager, new()
+        {
+            var output = OutputManagersCache.FirstOrDefault(o => o.GetType() == typeof(T));
+            if (output is null)
+            {
+                var factory = Services.GetServices<IOutputManagerFactory>().FirstOrDefault(s => s.OutputType == typeof(T)) ?? throw new Exception($"Cannot detected IOutputManagerFactory for {typeof(T)}");
+                output = factory.CreateForUser(this);
+                DefaultOutput = output;
+            }
+
+            return (T)output;
         }
 
         /// <summary>

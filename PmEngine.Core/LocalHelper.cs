@@ -21,10 +21,9 @@ namespace PmEngine.Core
         /// </summary>
         /// <param name="localName">Имя переменной</param>
         /// <returns>Значение переменной</returns>
-        public async Task<string?> GetLocal(string localName)
+        public async Task<string?> GetLocal(string localName, long userId)
         {
             string? result = null;
-            var userId = _serviceProvider.GetRequiredService<IUserScopeData>().Owner?.Id ?? -99;
             await _serviceProvider.GetRequiredService<IContextHelper>().InContext(async (context) =>
             {
                 result = (await context.Set<UserLocalEntity>().FirstOrDefaultAsync(p => p.UserId == userId && p.Name == localName))?.Value;
@@ -37,9 +36,8 @@ namespace PmEngine.Core
         /// </summary>
         /// <param name="value">Значение</param>
         /// <param name="key">Ключ</param>
-        public async Task SetLocal(string key, string? value)
+        public async Task SetLocal(string key, string? value, long userId)
         {
-            var userId = _serviceProvider.GetRequiredService<IUserScopeData>().Owner?.Id ?? -99;
             await _serviceProvider.GetRequiredService<IContextHelper>().InContext(async (context) =>
             {
                 var local = await context.Set<UserLocalEntity>().FirstOrDefaultAsync(p => p.UserId == userId && p.Name == key);

@@ -13,7 +13,7 @@ namespace PmEngine.Core.Tests
         {
             var services = new ServiceCollection();
 
-            services.AddPMEngine(engine => { engine.Properties.DataProvider = DataProvider.InMemory; engine.Properties.InitializationAction = typeof(TestAction); engine.Properties.ExceptionAction = typeof(TestAction); engine.Properties.EnableStateless = true; });
+            services.AddPMEngine(engine => { engine.DataProvider = DataProvider.InMemory; engine.InitializationAction = typeof(TestAction); engine.ExceptionAction = typeof(TestAction); engine.EnableStateless = true; });
             services.AddLogging();
             ILoggerFactory loggerFactory = LoggerFactory.Create((a) => { a.AddConsole(); a.SetMinimumLevel(logLevel); });
             services.AddSingleton(loggerFactory);
@@ -23,7 +23,7 @@ namespace PmEngine.Core.Tests
             var scope = provider.CreateScope();
 
             provider = scope.ServiceProvider;
-            var engine = provider.GetRequiredService<IEngineConfigurator>();
+            var engine = provider.GetRequiredService<PmEngine>();
             engine.Configure(provider).Wait();
 
             if (afterInit is not null)
@@ -34,10 +34,12 @@ namespace PmEngine.Core.Tests
 
         public static async Task<IUserSession> CreateNewUser(IServiceProvider services)
         {
-            var gameSession = services.GetRequiredService<IServerSession>();
+            var gameSession = services.GetRequiredService<ServerSession>();
             var user = await services.InContext(async (context) =>
             {
                 var usr = new UserEntity();
+                usr.RegistrationDate = DateTime.Now;
+                usr.LastOnlineDate = DateTime.Now;
                 context.Add(usr);
                 context.SaveChanges();
                 return usr;

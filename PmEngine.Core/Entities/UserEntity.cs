@@ -15,12 +15,12 @@ namespace PmEngine.Core.Entities
         /// <summary>
         /// Last online datetime
         /// </summary>
-        public DateTime LastOnlineDate { get; set; } = DateTime.Now;
+        public DateTime LastOnlineDate { get; set; }
 
         /// <summary>
         /// Registration date
         /// </summary>
-        public DateTime RegistrationDate {  get; set; } = DateTime.Now;
+        public DateTime RegistrationDate {  get; set; }
 
         public string? SessionData { get; set; }
 

@@ -14,7 +14,7 @@ namespace PmEngine.Core.BaseClasses
     /// IAction
     /// IDataEntity
     /// </summary>
-    public class BaseModuleRegistrator : IModuleRegistrator
+    public class BasePMEngineModule : IModuleRegistrator
     {
         /// <summary>
         /// Базовая регистрация
@@ -23,7 +23,7 @@ namespace PmEngine.Core.BaseClasses
         public virtual void Registrate(IServiceCollection services)
         {
             var allTypes = GetType().Assembly.GetTypes().Where(s => !s.IsAbstract && !s.IsInterface && s != null);
-            var interfaces = new Type[] { typeof(IDaemon), typeof(ICommand), typeof(IManager), typeof(IEventHandler), typeof(IAction), typeof(IDataEntity), typeof(IOutputManager), typeof(ITextRefactor) };
+            var interfaces = new Type[] { typeof(IDaemon), typeof(IChatCommand), typeof(IEventHandler), typeof(IAction), typeof(IDataContext), typeof(IDataEntity), typeof(ITextRefactor), typeof(IOutputManagerFactory) };
 
             foreach (var i in interfaces)
                 RegistrateInterfaceImplemetions(i, allTypes, services);
@@ -52,26 +52,19 @@ namespace PmEngine.Core.BaseClasses
 
             foreach (var type in typesToReg)
             {
-                try
+                if (interfacetype == typeof(IDataContext))
                 {
-                    if (interfacetype == typeof(IDataContext))
-                    {
-                        services.AddTransient(typeof(IDataContext), type);
-                        continue;
-                    }
-
-                    if (interfacetype == typeof(IOutputManager))
-                    {
-                        services.AddScoped(typeof(IOutputManager), type);
-                        continue;
-                    }
-
-                    services.AddSingleton(interfacetype, type);
+                    services.AddTransient(typeof(IDataContext), type);
+                    continue;
                 }
-                catch (Exception ex)
+
+                if (interfacetype == typeof(IOutputManager))
                 {
-                    Console.WriteLine($"Ошибка иницаилазации {interfacetype} - {type}: {ex}");
+                    services.AddScoped(typeof(IOutputManager), type);
+                    continue;
                 }
+
+                services.AddSingleton(interfacetype, type);
             }
         }
 
@@ -88,21 +81,14 @@ namespace PmEngine.Core.BaseClasses
 
             foreach (var type in typesToReg)
             {
-                try
+                switch (lifetime)
                 {
-                    switch (lifetime)
-                    {
-                        case ServiceLifetime.Transient:
-                            services.AddTransient(interfacetype, type); break;
-                        case ServiceLifetime.Singleton:
-                            services.AddSingleton(interfacetype, type); break;
-                        case ServiceLifetime.Scoped:
-                            services.AddScoped(interfacetype, type); break;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Ошибка иницаилазации {interfacetype} - {type}: {ex}");
+                    case ServiceLifetime.Singleton:
+                        services.AddSingleton(interfacetype, type); break;
+                    case ServiceLifetime.Scoped:
+                        services.AddScoped(interfacetype, type); break;
+                    case ServiceLifetime.Transient:
+                        services.AddTransient(interfacetype, type); break;
                 }
             }
         }

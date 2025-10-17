@@ -11,7 +11,12 @@ namespace PmEngine.Core
         /// <summary>
         /// Arguments source
         /// </summary>
-        public Dictionary<string, object> Source { get; set; } = new();
+        public Dictionary<string, object> Source { get; set; } = new(); 
+
+        /// <summary>
+        /// Асессоры для форматирования аргументов
+        /// </summary>
+        public List<IArgumentsAccessor> Accessors = new();
 
         /// <summary>
         /// Set argument value
@@ -139,5 +144,29 @@ namespace PmEngine.Core
         /// </summary>
         public string? InputData { get { return Get<string?>("inputData"); } set { Set("inputData", value); } }
         #endregion
+
+        public T As<T>() where T : IArgumentsAccessor, new()
+        {
+            var accessor = Accessors.FirstOrDefault(a => a.GetType() == typeof(T));
+
+            if (accessor is null)
+            {
+                accessor = new T();
+                Accessors.Add(accessor);
+            }
+
+            accessor.Source = this;
+            return (T)accessor;
+        }
+    }
+
+    public interface IArgumentsAccessor
+    {
+        Arguments Source { get; set; }
+    }
+
+    public class ArgumentsAccessor : IArgumentsAccessor
+    {
+        public Arguments Source { get; set; }
     }
 }

@@ -2,7 +2,7 @@
 {
     public interface ILocalHelper
     {
-        public Task<string?> GetLocal(string key);
-        public Task SetLocal(string key, string? value);
+        public Task<string?> GetLocal(string key, long userId);
+        public Task SetLocal(string key, string? value, long userId);
     }
 }

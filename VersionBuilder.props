@@ -1,8 +1,8 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<PropertyGroup>
 		<Company>PmGames Studio</Company>
 		<Copyright>Copyright © PmGames Studio $([System.DateTime]::Now.ToString(`yyyy`))</Copyright>
-		<FileVersion>1.905.$([System.DateTime]::Now.ToString(`MMdd`)).$([System.DateTime]::Now.ToString(`HHmm`))</FileVersion>
+		<FileVersion>2.95.$([System.DateTime]::Now.ToString(`MMdd`)).$([System.DateTime]::Now.ToString(`HHmm`))</FileVersion>
 		<AssemblyVersion>$(FileVersion)</AssemblyVersion>
 		<PackageVersion>$(FileVersion)</PackageVersion>
 		<Version>$(FileVersion)</Version>

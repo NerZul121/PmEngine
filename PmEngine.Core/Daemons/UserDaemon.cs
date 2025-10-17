@@ -1,4 +1,4 @@
-using PmEngine.Core.Interfaces;
+﻿using PmEngine.Core.Interfaces;
 using PmEngine.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,7 +19,7 @@ namespace PmEngine.Core.Daemons
         /// </summary>
         public override Task Work()
         {
-            var users = _services.GetRequiredService<IServerSession>().GetAllSessions().Where(v => v.CachedData.UserType != (int)UserType.Techincal && v.CachedData.UserType != (int)UserType.Banned).ToList();
+            var users = _services.GetRequiredService<ServerSession>().GetAllSessions().Where(v => v.CachedData.UserType != (int)UserType.Techincal && v.CachedData.UserType != (int)UserType.Banned).ToList();
 
             foreach (var user in users)
             {
@@ -62,10 +62,10 @@ namespace PmEngine.Core.Daemons
             if (userSession is null)
                 return false;
 
-            if (userSession.CachedData.LastOnlineDate.AddMinutes(_services.GetRequiredService<IEngineConfigurator>().Properties.SessionLifeTime) > DateTime.Now)
+            if (userSession.CachedData.LastOnlineDate.AddMinutes(_services.GetRequiredService<PmEngine>().Properties.SessionLifeTime) > DateTime.Now)
                 return true;
 
-            await _services.GetRequiredService<IServerSession>().RemoveUserSession(userSession);
+            await _services.GetRequiredService<ServerSession>().RemoveUserSession(userSession);
 
             return false;
         }

@@ -25,11 +25,6 @@ namespace PmEngine.Core
         public Type? InitializationAction { get; set; }
 
         /// <summary>
-        /// Начальное действие при инициализации сессии пользователя
-        /// </summary>
-        public string? InitializationActionName { get; set; }
-
-        /// <summary>
         /// Агрументы для начального действия
         /// </summary>
         public Arguments StartArguments { get; set; } = new Arguments();
@@ -53,7 +48,7 @@ namespace PmEngine.Core
         /// Независимость от сессий
         /// </summary>
         public bool EnableStateless { get; set; } = true;
-        
+
         /// <summary>
         /// Действие, которое выполнится у пользователя в случае неотловленной ошибки.
         /// </summary>
@@ -62,16 +57,6 @@ namespace PmEngine.Core
         /// <summary>
         /// Алгоритм выбора дефолтного аутпута
         /// </summary>
-        public List<Func<IUserSession, IOutputManager>> DefaultOutputSetter { get; set; } = new ();
-
-        /// <summary>
-        /// Использовать 
-        /// </summary>
-        public bool UseLibStorage { get; set; } = false;
-
-        /// <summary>
-        /// Путь к хранилищу библиотек
-        /// </summary>
-        public string LibStoragePath { get; set; } = Environment.GetEnvironmentVariable("LIB_STORAGE_PATH") ?? "./";
+        public List<Func<IUserSession, IOutputManager>> DefaultOutputSetter { get; set; } = [];
     }
 }

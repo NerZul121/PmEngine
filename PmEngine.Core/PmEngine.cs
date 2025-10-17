@@ -4,6 +4,7 @@ using PmEngine.Core.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PmEngine.Core.BaseClasses;
+using PmEngine.Core.Daemons;
 
 namespace PmEngine.Core
 {
@@ -11,22 +12,23 @@ namespace PmEngine.Core
     /// Класс движка. <br/>
     /// Тут происходит конфигурация модулей, их добавление и управление контекстами для работы с бд.
     /// </summary>
-    public class PMEngineConfigurator : IEngineConfigurator
+    public class PmEngine
     {
+        public PmEngine(IServiceProvider services, EngineProperties properties)
+        {
+            _serviceProvider = services;
+            Properties = properties;
+        }
+
         /// <summary>
         /// Конфигурация движка
         /// </summary>
-        public EngineProperties Properties { get; } = new EngineProperties();
+        public EngineProperties Properties { get; private set; }
 
         /// <summary>
         /// Сервис провайдер для получения сервисов
         /// </summary>
         private IServiceProvider? _serviceProvider;
-
-        /// <summary>
-        /// Список зарегистрированных сервисов
-        /// </summary>
-        public IServiceCollection Services { get; set; } = new ServiceCollection();
 
         /// <summary>
         /// Сервис провайдер для получения сервисов.
@@ -47,8 +49,8 @@ namespace PmEngine.Core
         /// </summary>
         public bool Configurated { get { return _serviceProvider is not null; } }
 
-        private ILogger<PMEngineConfigurator> _logger { get { if (_loggercreated is null) _loggercreated = GetLogger<PMEngineConfigurator>(); return _loggercreated; } }
-        private ILogger<PMEngineConfigurator>? _loggercreated;
+        private ILogger<PmEngine> _logger { get { if (_loggercreated is null) _loggercreated = GetLogger<PmEngine>(); return _loggercreated; } }
+        private ILogger<PmEngine>? _loggercreated;
 
         /// <summary>
         /// Конфигурирование движка. <br/>
@@ -58,15 +60,20 @@ namespace PmEngine.Core
         {
             try
             {
-                _serviceProvider = services;
-
-                if (services is null)
-                    _serviceProvider = Services.BuildServiceProvider();
-
-                LogConfig();
-
                 if (Properties.EnableLegacyTimestampBehavior)
                     AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
+                if (Properties.DataProvider != DataProvider.PG)
+                {
+                    try
+                    {
+                        using var context = new BaseContext(this);
+                        context.Database.EnsureCreated();
+                    }
+                    catch (Exception ex) { }
+                }
+
+                LogConfig();
 
                 if (Properties.DataProvider == DataProvider.PG)
                 {
@@ -75,20 +82,26 @@ namespace PmEngine.Core
                     await Migrate(typeof(BaseContext));
 
                     foreach (var context in contexts)
-                        await Migrate(context.GetType());
+                        try
+                        {
+                            await Migrate(context.GetType());
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError($"Migration exception of context {context.GetType().FullName}: {ex}");
+                            throw;
+                        }
                 }
 
                 foreach (var content in _serviceProvider.GetServices<IContentRegistrator>().OrderBy(p => p.Priority))
                     await content.Registrate();
 
-                var managersServices = _serviceProvider.GetServices<IManager>();
-                foreach (var m in managersServices)
-                    m.Configure(_serviceProvider);
+                _serviceProvider.GetRequiredService<DaemonManager>().Configure();
+                _serviceProvider.GetRequiredService<CommandManager>().Configure();
             }
             catch (Exception ex)
             {
                 _logger.LogError("Configuration error: " + ex.ToString());
-                _serviceProvider = null;
                 throw;
             }
         }

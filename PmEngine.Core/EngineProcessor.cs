@@ -14,14 +14,13 @@ namespace PmEngine.Core
     {
         private ILogger<EngineProcessor> _logger;
         private IServiceProvider _services;
-        private IEngineConfigurator _config;
+        private PmEngine _config;
 
-        public EngineProcessor(IServiceProvider services, ILogger<EngineProcessor> logger, IEngineConfigurator config)
+        public EngineProcessor(IServiceProvider services, ILogger<EngineProcessor> logger, PmEngine config)
         {
             _logger = logger;
             _services = services;
             _config = config;
-            Assembler.LibPaht = _config.Properties.LibStoragePath;
         }
 
         /// <summary>
@@ -48,33 +47,27 @@ namespace PmEngine.Core
 
                 await MakeEvent<IMakeActionBeforeEventHandler>((handler) => handler.Handle(userSession, action));
 
-                if (_config.Properties.UseLibStorage)
+
+                if (action.ActionType is null)
                 {
-                    result = await Assembler.InAssembly(action, userSession);
+                    var at = GetActionType(action.ActionTypeName);
+
+                    if (at is null)
+                        result = action.NextActions;
+                    else
+                        action.ActionType = at;
                 }
+
+                if (action.ActionType.GetInterface("IAction") == null)
+                    throw new Exception(action.ActionType + " не реализует интерфейс IAction.");
                 else
                 {
-                    if (action.ActionType is null)
-                    {
-                        var at = GetActionType(action.ActionTypeName);
+                    iaction = (IAction?)Activator.CreateInstance(action.ActionType);
 
-                        if (at is null)
-                            result = action.NextActions;
-                        else
-                            action.ActionType = at;
-                    }
-                    
-                    if (action.ActionType.GetInterface("IAction") == null)
-                        throw new Exception(action.ActionType + " не реализует интерфейс IAction.");
-                    else
-                    {
-                        iaction = (IAction?)Activator.CreateInstance(action.ActionType);
+                    if (iaction is null)
+                        throw new Exception("Не удалось создать экшн " + action.ActionType);
 
-                        if (iaction is null)
-                            throw new Exception("Не удалось создать экшн " + action.ActionType);
-
-                        result = await iaction.DoAction(action, userSession);
-                    }
+                    result = await iaction.DoAction(action, userSession);
                 }
 
                 if (result is not null && result.GetNextActions().Any())
@@ -89,7 +82,7 @@ namespace PmEngine.Core
 
                 int msgId = -1;
                 if (!String.IsNullOrEmpty(output) || userSession.Media is not null && userSession.Media.Any())
-                    msgId = await userSession.GetOutput().ShowContent(output, result?.NumeredDuplicates(), userSession.Media, result?.Arguments);
+                    msgId = await userSession.Output.ShowContent(output, result?.NumeredDuplicates(), userSession.Media, result?.Arguments);
 
                 action.Arguments.Set("messageId", msgId);
 
@@ -109,10 +102,10 @@ namespace PmEngine.Core
                 userSession.OutputContent = "";
                 userSession.Media = null;
 
-                if (action.ActionType == (_services.GetRequiredService<IEngineConfigurator>().Properties.ExceptionAction ?? typeof(ExceptionAction)))
+                if (action.ActionType == (_config.Properties.ExceptionAction ?? typeof(ExceptionAction)))
                     _logger.LogCritical($"{userSession.Id}: Ошибка исполнения {action}: {ex}", userSession.CachedData);
                 else
-                    await ActionProcess(new ActionWrapper("ExceptionAction", _services.GetRequiredService<IEngineConfigurator>().Properties.ExceptionAction ?? typeof(ExceptionAction), args), userSession);
+                    await ActionProcess(new ActionWrapper("ExceptionAction", _config.Properties.ExceptionAction ?? typeof(ExceptionAction), args), userSession);
             }
             finally
             {
@@ -135,25 +128,19 @@ namespace PmEngine.Core
 
             await MakeEvent<IMakeActionBeforeEventHandler>((handler) => handler.Handle(user, action));
 
-            if (!_config.Properties.UseLibStorage)
-            {
-                if (action.ActionType is null)
-                    return action.NextActions;
+            if (action.ActionType is null)
+                return action.NextActions;
 
-                if (action.ActionType.GetInterface("IAction") == null)
-                    throw new Exception(action.ActionType + " не реализует интерфейс IAction.");
+            if (action.ActionType.GetInterface("IAction") == null)
+                throw new Exception(action.ActionType + " не реализует интерфейс IAction.");
 
+            var act = (IAction?)Activator.CreateInstance(action.ActionType);
 
-                var act = (IAction?)Activator.CreateInstance(action.ActionType);
+            if (act is null)
+                throw new Exception("Не удалось создать экшн " + action.ActionType);
 
-                if (act is null)
-                    throw new Exception("Не удалось создать экшн " + action.ActionType);
-
-                result = await act.DoAction(action, user);
-                await act.AfterAction(action, user);
-            }
-            else
-                result = await Assembler.InAssembly(action, user);
+            result = await act.DoAction(action, user);
+            await act.AfterAction(action, user);
 
             await MakeEvent<IMakeActionAfterEventHandler>((handler) => handler.Handle(user, action));
 
@@ -171,9 +158,6 @@ namespace PmEngine.Core
                 return null;
 
             Type? action = null;
-
-            if (_config.Properties.UseLibStorage)
-                action = Assembler.Get<IAction>(actionName)?.GetType();
 
             if (action is null)
                 action = _services.GetServices<IAction>().FirstOrDefault(a => a.GetType().FullName == actionName)?.GetType();

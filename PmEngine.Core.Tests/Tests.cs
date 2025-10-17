@@ -1,4 +1,4 @@
-using PmEngine.Core.Entities;
+﻿using PmEngine.Core.Entities;
 using PmEngine.Core.Tests.Entities;
 using PmEngine.Core.Extensions;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,10 +25,9 @@ namespace PmEngine.Core.Tests
         public void BaseInitialization()
         {
             var services = new ServiceCollection();
-            services.AddSingleton<IModuleRegistrator>(new TestModuleRegistrator());
-            services.AddScoped(typeof(IOutputManager), typeof(TestCoreOutput));
 
-            services.AddPMEngine(engine => { engine.Properties.DataProvider = Enums.DataProvider.InMemory; engine.Properties.InitializationAction = typeof(MyActionJoka); engine.Properties.UseLibStorage = true; });
+            services.AddPMEngine(engine => { engine.DataProvider = Enums.DataProvider.InMemory; engine.InitializationAction = typeof(MyActionJoka); });
+            services.AddPmModule<TestModuleRegistrator>();
             services.AddLogging();
             using ILoggerFactory loggerFactory = LoggerFactory.Create((a) => { a.AddConsole(); });
             services.AddSingleton(loggerFactory);
@@ -38,7 +37,7 @@ namespace PmEngine.Core.Tests
             using var scope = provider.CreateScope();
 
             provider = scope.ServiceProvider;
-            var engine = provider.GetRequiredService<IEngineConfigurator>();
+            var engine = provider.GetRequiredService<PmEngine>();
             engine.Configure(provider).Wait();
 
             UserEntity user = new();
@@ -51,7 +50,7 @@ namespace PmEngine.Core.Tests
                 await context.SaveChangesAsync();
             }).Wait();
 
-            var ps = provider.GetRequiredService<IServerSession>().GetUserSession(user.Id).Result;
+            var ps = provider.GetRequiredService<ServerSession>().GetUserSession(user.Id, null, typeof(TestCoreOutput)).Result;
             Console.WriteLine(ps.NextActions);
         }
 

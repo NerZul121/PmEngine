@@ -1,39 +1,22 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using PmEngine.Core.BaseClasses;
+﻿using PmEngine.Core.BaseClasses;
 using PmEngine.Core.Interfaces;
 
 namespace PmEngine.Core
 {
     public class ContextHelper : IContextHelper
     {
-        private IServiceProvider _services;
+        private PmEngine _engine;
 
-        public ContextHelper(IServiceProvider serviceProvider)
+        public ContextHelper(PmEngine engine)
         {
-            _services = serviceProvider;
-        }
-
-        public async Task InContext<T>(Func<T, Task> action) where T : IDataContext
-        {
-            try
-            {
-                using var scope = _services.CreateScope();
-                using var context = scope.ServiceProvider.GetRequiredService<T>();
-                await action(context);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                throw;
-            }
+            _engine = engine;
         }
 
         public async Task InContext(Func<BaseContext, Task> action)
         {
             try
             {
-                using var scope = _services.CreateScope();
-                using var context = scope.ServiceProvider.GetRequiredService<IDataContext>() as BaseContext;
+                using var context = new BaseContext(_engine);
                 await action(context);
             }
             catch (Exception ex)
@@ -47,8 +30,7 @@ namespace PmEngine.Core
         {
             try
             {
-                using var scope = _services.CreateScope();
-                using var context = (BaseContext)scope.ServiceProvider.GetServices<IDataContext>().First(c => c.GetType() == contextType);
+                using var context = new BaseContext(_engine);
                 await action(context);
             }
             catch (Exception ex)
@@ -62,8 +44,7 @@ namespace PmEngine.Core
         {
             try
             {
-                using var scope = _services.CreateScope();
-                using var context = (BaseContext)scope.ServiceProvider.GetServices<IDataContext>().First(c => c.GetType() == contextType);
+                using var context = new BaseContext(_engine);
                 return await action(context);
             }
             catch (Exception ex)
@@ -77,8 +58,7 @@ namespace PmEngine.Core
         {
             try
             {
-                using var scope = _services.CreateScope();
-                using var context = scope.ServiceProvider.GetServices<IDataContext>().First(c => c.GetType() == typeof(BaseContext)) as BaseContext;
+                using var context = new BaseContext(_engine);
                 return await action(context);
             }
             catch (Exception ex)
@@ -90,15 +70,13 @@ namespace PmEngine.Core
 
         public void InContextSync(Action<BaseContext> act)
         {
-            using var scope = _services.CreateScope();
-            using var context = (BaseContext)scope.ServiceProvider.GetRequiredService<IDataContext>();
+            using var context = new BaseContext(_engine);
             act(context);
         }
 
         public T InContextSync<T>(Func<BaseContext, T> func)
         {
-            using var scope = _services.CreateScope();
-            using var context = (BaseContext)scope.ServiceProvider.GetRequiredService<IDataContext>();
+            using var context = new BaseContext(_engine);
             return func(context);
         }
     }

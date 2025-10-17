@@ -3,6 +3,7 @@ using PmEngine.Core.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using PmEngine.Core.Attributes;
 using PmEngine.Core.Enums;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace PmEngine.Core.BaseClasses
 {
@@ -13,12 +14,12 @@ namespace PmEngine.Core.BaseClasses
     [Priority(int.MaxValue)]
     public class BaseContext : DbContext, IDataContext
     {
-        protected IEngineConfigurator _configurator;
+        protected PmEngine _configurator;
 
         /// <summary>
         /// Контекст соединения с БД
         /// </summary>
-        public BaseContext(IEngineConfigurator? configurator = null)
+        public BaseContext(PmEngine? configurator = null)
         {
             if (configurator is not null)
             {
@@ -59,6 +60,8 @@ namespace PmEngine.Core.BaseClasses
         /// <param name="optionsBuilder"></param>
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            optionsBuilder.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
+
             if (_configurator is not null)
                 switch (_configurator.Properties.DataProvider)
                 {

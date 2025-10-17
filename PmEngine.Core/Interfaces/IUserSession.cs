@@ -14,13 +14,11 @@ namespace PmEngine.Core.Interfaces
         public ActionWrapper? InputAction { get; set; }
         public INextActionsMarkup? NextActions { get; set; }
         public ActionWrapper? CurrentAction { get; set; }
-        public T GetOutput<T>() where T : IOutputManager;
-        public IOutputManager GetOutput();
+        public T GetOutput<T>() where T : IOutputManager, new();
         public string? OutputContent { get; set; }
         public IEnumerable<object>? Media { get; set; }
-        public IServiceScope Scope { get; protected set; }
         public IServiceProvider Services { get; protected set; }
-        public void SetDefaultOutput<T>() where T : IOutputManager;
+        public IOutputManager GetOutputOrCreate(Type outputType);
         public Task MarkOnline();
         public T? GetLocal<T>(string name);
         public void SetLocal(string name, object? value);

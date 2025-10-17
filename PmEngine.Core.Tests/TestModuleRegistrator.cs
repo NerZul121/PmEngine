@@ -4,7 +4,7 @@ using PmEngine.Core.Interfaces;
 
 namespace PmEngine.Core.Tests
 {
-    public class TestModuleRegistrator : BaseModuleRegistrator
+    public class TestModuleRegistrator : BasePMEngineModule
     {
     }
 }

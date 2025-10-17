@@ -5,27 +5,37 @@ namespace PmEngine.Core.Tests
     internal class TestCoreOutput : IOutputManager
     {
         private int _counter = 0;
-        private IUserScopeData _userData;
+        private IUserSession _user;
 
-        public TestCoreOutput(IUserScopeData userData)
+        public TestCoreOutput(IUserSession user)
         {
-            _userData = userData;
+            _user = user;
         }
 
         public async Task DeleteMessage(int messageId)
         {
-            Console.WriteLine($"{_userData.Owner.Id}: Deleted Message #{messageId}");
+            Console.WriteLine($"{_user.Id}: Deleted Message #{messageId}");
         }
 
         public async Task EditContent(int messageId, string content, INextActionsMarkup? nextActions = null, IEnumerable<object>? media = null, Arguments? additionals = null)
         {
-            Console.WriteLine($"{_userData.Owner.Id}: Edit Mesage content Id {messageId} on {content}");
+            Console.WriteLine($"{_user.Id}: Edit Mesage content Id {messageId} on {content}");
         }
 
         public async Task<int> ShowContent(string content, INextActionsMarkup? nextActions = null, IEnumerable<object>? media = null, Arguments? additionals = null)
         {
-            Console.WriteLine($"{_userData.Owner.Id}: Send content {content}");
+            Console.WriteLine($"{_user.Id}: Send content {content}");
             return _counter++;
+        }
+    }
+
+    internal class TestCoreOutputFactory : IOutputManagerFactory
+    {
+        public Type OutputType => typeof(TestCoreOutput);
+
+        public IOutputManager CreateForUser(IUserSession user)
+        {
+            return new TestCoreOutput(user);
         }
     }
 }
