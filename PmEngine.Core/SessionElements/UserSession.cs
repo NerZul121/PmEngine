@@ -247,7 +247,7 @@ namespace PmEngine.Core.SessionElements
             return output;
         }
 
-        public T GetOutput<T>() where T : IOutputManager, new()
+        public T GetOutput<T>() where T : IOutputManager
         {
             var output = OutputManagersCache.FirstOrDefault(o => o.GetType() == typeof(T));
             if (output is null)

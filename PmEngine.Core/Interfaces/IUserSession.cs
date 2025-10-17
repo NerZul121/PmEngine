@@ -14,7 +14,7 @@ namespace PmEngine.Core.Interfaces
         public ActionWrapper? InputAction { get; set; }
         public INextActionsMarkup? NextActions { get; set; }
         public ActionWrapper? CurrentAction { get; set; }
-        public T GetOutput<T>() where T : IOutputManager, new();
+        public T GetOutput<T>() where T : IOutputManager;
         public string? OutputContent { get; set; }
         public IEnumerable<object>? Media { get; set; }
         public IServiceProvider Services { get; protected set; }
