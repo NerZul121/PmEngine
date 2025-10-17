@@ -11,7 +11,7 @@ namespace PmEngine.Core
         /// <summary>
         /// Arguments source
         /// </summary>
-        public Dictionary<string, object> Source { get; set; } = new(); 
+        public Dictionary<string, object> Source { get; set; } = new();
 
         /// <summary>
         /// Асессоры для форматирования аргументов
@@ -136,6 +136,17 @@ namespace PmEngine.Core
 
             foreach (var arg in args)
                 Source[arg.Key.ToLower()] = arg.Value;
+        }
+
+        public Arguments With(string key, object? value)
+        {
+            Set(key, value);
+            return this;
+        }
+
+        public Arguments New()
+        {
+            return new Arguments(Source);
         }
 
         #region Fields
