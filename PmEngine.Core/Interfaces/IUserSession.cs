@@ -26,6 +26,7 @@ namespace PmEngine.Core.Interfaces
         public IOutputManager Output { get; }
         public void AddToOutput(string text);
         public ILogger Logger { get; set; }
+        public Arguments LocalStore { get; }
 
         public async Task ActionProcess(ActionWrapper action)
         {
