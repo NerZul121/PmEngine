@@ -87,8 +87,7 @@ namespace PmEngine.Core
         /// <param name="userSession">ID пользователя</param>
         public virtual async Task RemoveUserSession(IUserSession userSession)
         {
-            var us = UserSessions[userSession.CachedData.Id];
-            await _services.GetRequiredService<IEngineProcessor>().MakeEvent<IUserSessionDisposeEventHandler>(async (handler) => await handler.Handle(us));
+            await _services.GetRequiredService<IEngineProcessor>().MakeEvent<IUserSessionDisposeEventHandler>(async (handler) => await handler.Handle(userSession));
             UserSessions.Remove(userSession.CachedData.Id, out _);
         }
 

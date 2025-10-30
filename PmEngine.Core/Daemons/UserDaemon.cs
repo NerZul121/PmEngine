@@ -62,6 +62,9 @@ namespace PmEngine.Core.Daemons
             if (userSession is null)
                 return false;
 
+            if ((DateTime.Now - userSession.SessionCreateTime).TotalSeconds < 5)
+                return true;
+
             if (userSession.CachedData.LastOnlineDate.AddMinutes(_services.GetRequiredService<PmEngine>().Properties.SessionLifeTime) > DateTime.Now)
                 return true;
 

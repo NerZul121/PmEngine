@@ -27,7 +27,7 @@ namespace PmEngine.Core.Extensions
             services.AddSingleton<DaemonManager>();
             services.AddSingleton<CommandManager>();
             services.AddSingleton(typeof(IEngineProcessor), typeof(EngineProcessor));
-            services.AddScoped(typeof(ILocalHelper), typeof(LocalHelper));
+            services.AddSingleton(typeof(ILocalHelper), typeof(LocalHelper));
             services.AddSingleton<ServerSession>();
             services.AddSingleton(typeof(IContextHelper), typeof(ContextHelper));
 
