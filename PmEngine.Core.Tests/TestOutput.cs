@@ -17,15 +17,31 @@ namespace PmEngine.Core.Tests
             Console.WriteLine($"{_user.Id}: Deleted Message #{messageId}");
         }
 
+        public void DeleteMessageSafe(int messageId)
+        {
+            Console.WriteLine($"{_user.Id}: Deleted safe Message #{messageId}");
+        }
+
         public async Task EditContent(int messageId, string content, INextActionsMarkup? nextActions = null, IEnumerable<object>? media = null, Arguments? additionals = null)
         {
             Console.WriteLine($"{_user.Id}: Edit Mesage content Id {messageId} on {content}");
+        }
+
+        public void EditContentSafe(int messageId, string content, INextActionsMarkup? nextActions = null, IEnumerable<object>? media = null, Arguments? additionals = null)
+        {
+            Console.WriteLine($"{_user.Id}: Edit safe Mesage content Id {messageId} on {content}");
         }
 
         public async Task<int> ShowContent(string content, INextActionsMarkup? nextActions = null, IEnumerable<object>? media = null, Arguments? additionals = null)
         {
             Console.WriteLine($"{_user.Id}: Send content {content}");
             return _counter++;
+        }
+
+        public void ShowContentSafe(string content, INextActionsMarkup? nextActions = null, IEnumerable<object>? media = null, Arguments? additionals = null)
+        {
+            Console.WriteLine($"{_user.Id}: Send safe content {content}");
+            _counter++;
         }
     }
 

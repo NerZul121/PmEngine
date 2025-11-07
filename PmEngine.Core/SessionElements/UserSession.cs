@@ -6,6 +6,7 @@ using PmEngine.Core.Entities;
 using PmEngine.Core.Extensions;
 using PmEngine.Core.Interfaces;
 using PmEngine.Core.Interfaces.Events;
+using System.Collections.Concurrent;
 using System.Text.Json;
 
 namespace PmEngine.Core.SessionElements
@@ -69,11 +70,21 @@ namespace PmEngine.Core.SessionElements
 
                 if (Engine.Properties.EnableStateless)
                 {
-                    Services.InContextSync(context =>
+                    Task.Run(async () =>
                     {
-                        var userData = Reload(context);
-                        userData.SessionData = JsonSerializer.Serialize(new SessionData(this));
-                        context.SaveChanges();
+                        try
+                        {
+                            await Services.GetRequiredService<IContextHelper>().InContext(async (context) =>
+                            {
+                                var userData = Reload(context);
+                                userData.SessionData = JsonSerializer.Serialize(new SessionData(this));
+                                await context.SaveChangesAsync();
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.LogError(ex, $"Ошибка сохранения SessionData для пользователя {Id}");
+                        }
                     });
                 }
             }
@@ -89,7 +100,7 @@ namespace PmEngine.Core.SessionElements
         {
             get
             {
-                Services.InContextSync(async (context) =>
+                Services.InContextSync((context) =>
                 {
                     _cache = context.Set<UserEntity>().AsNoTracking().First(u => u.Id == Id);
                 });
@@ -117,11 +128,21 @@ namespace PmEngine.Core.SessionElements
 
                 if (Engine.Properties.EnableStateless)
                 {
-                    Services.InContextSync(context =>
+                    Task.Run(async () =>
                     {
-                        var userData = Reload(context);
-                        userData.SessionData = JsonSerializer.Serialize(new SessionData(this));
-                        context.SaveChanges();
+                        try
+                        {
+                            await Services.GetRequiredService<IContextHelper>().InContext(async (context) =>
+                            {
+                                var userData = Reload(context);
+                                userData.SessionData = JsonSerializer.Serialize(new SessionData(this));
+                                await context.SaveChangesAsync();
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.LogError(ex, $"Ошибка сохранения SessionData для пользователя {Id}");
+                        }
                     });
                 }
             }
@@ -139,11 +160,21 @@ namespace PmEngine.Core.SessionElements
 
                 if (Engine.Properties.EnableStateless)
                 {
-                    Services.InContextSync(context =>
+                    Task.Run(async () =>
                     {
-                        var userData = Reload(context);
-                        userData.SessionData = JsonSerializer.Serialize(new SessionData(this));
-                        context.SaveChanges();
+                        try
+                        {
+                            await Services.GetRequiredService<IContextHelper>().InContext(async (context) =>
+                            {
+                                var userData = Reload(context);
+                                userData.SessionData = JsonSerializer.Serialize(new SessionData(this));
+                                await context.SaveChangesAsync();
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.LogError(ex, $"Ошибка сохранения SessionData для пользователя {Id}");
+                        }
                     });
                 }
             }
@@ -154,7 +185,7 @@ namespace PmEngine.Core.SessionElements
         /// <summary>
         /// Временные переменные, подобно Cookies. Очищаются вместе с сессией.
         /// </summary>
-        public Dictionary<string, object> Locals { get; set; } = new();
+        public ConcurrentDictionary<string, object> Locals { get; set; } = new();
 
         public string? OutputContent { get; set; }
 

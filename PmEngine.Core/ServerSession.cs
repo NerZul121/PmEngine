@@ -17,6 +17,7 @@ namespace PmEngine.Core
         private ILogger _logger;
         private IServiceProvider _services;
         private PmEngine _engine;
+        private readonly ConcurrentDictionary<long, SemaphoreSlim> _sessionCreationLocks = new();
 
         public ServerSession(IServiceProvider services, ILogger logger, PmEngine engine)
         {
@@ -50,35 +51,59 @@ namespace PmEngine.Core
         /// <returns></returns>
         public virtual async Task<IUserSession> GetUserSession(long userId, Action<IUserSession>? init = null, Type? outputType = null, bool forceInit = true)
         {
-            var session = UserSessions.ContainsKey(userId) ? UserSessions[userId] : null;
-
-            if (session is null)
+            if (UserSessions.TryGetValue(userId, out var existingSession))
             {
+                if (outputType is not null)
+                    existingSession.GetOutputOrCreate(outputType);
+
+                return existingSession;
+            }
+
+            var semaphore = _sessionCreationLocks.GetOrAdd(userId, _ => new SemaphoreSlim(1, 1));
+
+            await semaphore.WaitAsync();
+            try
+            {
+                if (UserSessions.TryGetValue(userId, out existingSession))
+                {
+                    if (outputType is not null)
+                        existingSession.GetOutputOrCreate(outputType);
+                    return existingSession;
+                }
+
+                IUserSession? newSession = null;
                 await _services.GetRequiredService<IContextHelper>().InContext(async (context) =>
                 {
                     var usr = await context.Set<UserEntity>().AsNoTracking().FirstOrDefaultAsync(p => p.Id == userId);
                     if (usr is null)
                         throw new Exception("Пользователь не найден. ID: " + userId);
 
-                    session = new UserSession(_services, usr);
+                    newSession = new UserSession(_services, usr);
                 });
 
-                UserSessions[userId] = session;
+                if (newSession is not null)
+                {
+                    UserSessions.TryAdd(userId, newSession);
 
-                if (outputType is not null)
-                    session.GetOutputOrCreate(outputType);
+                    if (outputType is not null)
+                        newSession.GetOutputOrCreate(outputType);
 
-                if (init != null)
-                    init(session);
+                    if (init != null)
+                        init(newSession);
 
-                if (forceInit)
-                    if (!_engine.Properties.EnableStateless || String.IsNullOrEmpty(session.CachedData.SessionData))
-                        await _services.GetRequiredService<IEngineProcessor>().ActionProcess(session.CurrentAction, session);
+                    if (forceInit)
+                        if (!_engine.Properties.EnableStateless || String.IsNullOrEmpty(newSession.CachedData.SessionData))
+                            await _services.GetRequiredService<IEngineProcessor>().ActionProcess(newSession.CurrentAction, newSession);
+
+                    return newSession;
+                }
+
+                throw new Exception("Не удалось создать сессию пользователя. ID: " + userId);
             }
-            else if (outputType is not null)
-                session.GetOutputOrCreate(outputType);
-
-            return session;
+            finally
+            {
+                semaphore.Release();
+            }
         }
 
         /// <summary>

@@ -32,5 +32,30 @@
         /// <param name="messageId"></param>
         /// <returns></returns>
         public Task DeleteMessage(int messageId);
+
+        /// <summary>
+        /// Безопасная отправка сообщения БЕЗ ожидания.
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="nextActions"></param>
+        /// <param name="media"></param>
+        /// <param name="additionals"></param>
+        public void ShowContentSafe(string content, INextActionsMarkup? nextActions = null, IEnumerable<object>? media = null, Arguments? additionals = null);
+
+        /// <summary>
+        /// Безопасное изменение контента БЕЗ ожидания
+        /// </summary>
+        /// <param name="messageId"></param>
+        /// <param name="content"></param>
+        /// <param name="nextActions"></param>
+        /// <param name="media"></param>
+        /// <param name="additionals"></param>
+        public void EditContentSafe(int messageId, string content, INextActionsMarkup? nextActions = null, IEnumerable<object>? media = null, Arguments? additionals = null);
+
+        /// <summary>
+        /// Безопасное удаление контента БЕЗ ожидания
+        /// </summary>
+        /// <param name="messageId"></param>
+        public void DeleteMessageSafe(int messageId);
     }
 }

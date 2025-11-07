@@ -2,6 +2,7 @@
 using PmEngine.Core.Interfaces;
 using PmEngine.Core.Interfaces.Events;
 using Microsoft.Extensions.Logging;
+using System.Collections.Concurrent;
 
 namespace PmEngine.Core
 {
@@ -28,7 +29,7 @@ namespace PmEngine.Core
         /// <summary>
         /// Список зарегистрированых команд
         /// </summary>
-        public static Dictionary<string, IChatCommand> Commands { get; } = new();
+        public static ConcurrentDictionary<string, IChatCommand> Commands { get; } = new();
 
         /// <summary>
         /// Конфигурация команд
@@ -43,10 +44,7 @@ namespace PmEngine.Core
             foreach (var command in commands)
             {
                 _logger.LogInformation("Command registration: " + command.ToString());
-                if (Commands.ContainsKey(command.Name))
-                    continue;
-
-                Commands.Add(command.Name, command);
+                Commands.TryAdd(command.Name, command);
             }
         }
 

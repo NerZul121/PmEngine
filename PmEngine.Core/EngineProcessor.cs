@@ -96,14 +96,14 @@ namespace PmEngine.Core
             }
             catch (Exception ex)
             {
-
+                var cachedData = userSession.CachedData;
                 var args = new Arguments(new() { { "exception", ex }, { "action", action } });
-                _logger.LogError($"{userSession.Id}: Ошибка исполнения {action}: {ex}", userSession.CachedData);
+                _logger.LogError($"{userSession.Id}: Ошибка исполнения {action}: {ex}", cachedData);
                 userSession.OutputContent = "";
                 userSession.Media = null;
 
                 if (action.ActionType == (_config.Properties.ExceptionAction ?? typeof(ExceptionAction)))
-                    _logger.LogCritical($"{userSession.Id}: Ошибка исполнения {action}: {ex}", userSession.CachedData);
+                    _logger.LogCritical($"{userSession.Id}: Ошибка исполнения {action}: {ex}", cachedData);
                 else
                     await ActionProcess(new ActionWrapper("ExceptionAction", _config.Properties.ExceptionAction ?? typeof(ExceptionAction), args), userSession);
             }
