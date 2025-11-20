@@ -11,7 +11,7 @@ using PmEngine.Core.BaseClasses;
 
 namespace PmEngine.Core.Migrations
 {
-    [DbContext(typeof(BaseContext))]
+    [DbContext(typeof(PMEContext))]
     [Migration("20231115111427_statelessMode")]
     partial class statelessMode
     {

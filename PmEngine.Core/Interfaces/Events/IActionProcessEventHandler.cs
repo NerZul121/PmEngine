@@ -1,4 +1,6 @@
-﻿namespace PmEngine.Core.Interfaces.Events
+﻿using PmEngine.Core.SessionElements;
+
+namespace PmEngine.Core.Interfaces.Events
 {
     /// <summary>
     /// Событие выполнения действия ПЕРЕД действием в случае полного действия пользователя (Нажал на кнопку)
@@ -11,7 +13,7 @@
         /// <param name="userSession">ID пользователя</param>
         /// <param name="action">Действие</param>
         /// <returns></returns>
-        public Task Handle(IUserSession userSession, ActionWrapper action);
+        public Task Handle(UserSession userSession, ActionWrapper action);
     }
 
     /// <summary>
@@ -25,7 +27,7 @@
         /// <param name="userSession">ID пользователя</param>
         /// <param name="action">Действие</param>
         /// <returns></returns>
-        public Task Handle(IUserSession userSession, ActionWrapper action);
+        public Task Handle(UserSession userSession, ActionWrapper action);
     }
 
     /// <summary>
@@ -39,6 +41,6 @@
         /// <param name="userSession">ID пользователя</param>
         /// <param name="action">Действие</param>
         /// <returns></returns>
-        public Task Handle(IUserSession userSession, ActionWrapper action);
+        public Task Handle(UserSession userSession, ActionWrapper action);
     }
 }

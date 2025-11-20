@@ -12,7 +12,6 @@ namespace PmEngine.Core.BaseClasses
     /// ICommand
     /// IEventHandler
     /// IAction
-    /// IDataEntity
     /// </summary>
     public class BasePMEngineModule : IModuleRegistrator
     {
@@ -23,7 +22,7 @@ namespace PmEngine.Core.BaseClasses
         public virtual void Registrate(IServiceCollection services)
         {
             var allTypes = GetType().Assembly.GetTypes().Where(s => !s.IsAbstract && !s.IsInterface && s != null);
-            var interfaces = new Type[] { typeof(IDaemon), typeof(IChatCommand), typeof(IEventHandler), typeof(IAction), typeof(IDataContext), typeof(IDataEntity), typeof(ITextRefactor), typeof(IOutputManagerFactory) };
+            var interfaces = new Type[] { typeof(IDaemon), typeof(IChatCommand), typeof(IEventHandler), typeof(IAction), typeof(IOutputMutation), typeof(IOutputManagerFactory) };
 
             foreach (var i in interfaces)
                 RegistrateInterfaceImplemetions(i, allTypes, services);
@@ -52,12 +51,6 @@ namespace PmEngine.Core.BaseClasses
 
             foreach (var type in typesToReg)
             {
-                if (interfacetype == typeof(IDataContext))
-                {
-                    services.AddTransient(typeof(IDataContext), type);
-                    continue;
-                }
-
                 if (interfacetype == typeof(IOutputManager))
                 {
                     services.AddScoped(typeof(IOutputManager), type);

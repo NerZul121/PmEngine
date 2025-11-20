@@ -1,13 +1,13 @@
-﻿using PmEngine.Core.Actions;
-using PmEngine.Core.Enums;
+﻿using PmEngine.Core.Enums;
 using PmEngine.Core.Interfaces;
+using PmEngine.Core.SessionElements;
 
 namespace PmEngine.Core
 {
     /// <summary>
     /// Настройки бота
     /// </summary>
-    public class EngineProperties
+    public class PmConfig
     {
         /// <summary>
         /// Нумеровать-ли дубликаты действий
@@ -23,6 +23,11 @@ namespace PmEngine.Core
         /// Начальное действие при инициализации сессии пользователя
         /// </summary>
         public Type? InitializationAction { get; set; }
+
+        /// <summary>
+        /// Инициализировать пользователя с указанным действием при создании новой сессии
+        /// </summary>
+        public bool InitializeWithAction { get; set; } = true;
 
         /// <summary>
         /// Агрументы для начального действия
@@ -52,11 +57,11 @@ namespace PmEngine.Core
         /// <summary>
         /// Действие, которое выполнится у пользователя в случае неотловленной ошибки.
         /// </summary>
-        public Type? ExceptionAction { get; set; } = typeof(ExceptionAction);
+        public Type? ExceptionAction { get; set; }
 
         /// <summary>
         /// Алгоритм выбора дефолтного аутпута
         /// </summary>
-        public List<Func<IUserSession, IOutputManager>> DefaultOutputSetter { get; set; } = [];
+        public List<Func<UserSession, IOutputManager>> DefaultOutputSetter { get; set; } = [];
     }
 }

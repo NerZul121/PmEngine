@@ -10,7 +10,7 @@ using PmEngine.Core.BaseClasses;
 
 namespace PmEngine.Core.Migrations
 {
-    [DbContext(typeof(BaseContext))]
+    [DbContext(typeof(PMEContext))]
     partial class BaseContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

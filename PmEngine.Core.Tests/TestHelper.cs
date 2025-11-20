@@ -1,9 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using PmEngine.Core.BaseClasses;
 using PmEngine.Core.Entities;
 using PmEngine.Core.Enums;
 using PmEngine.Core.Extensions;
 using PmEngine.Core.Interfaces;
+using PmEngine.Core.SessionElements;
 
 namespace PmEngine.Core.Tests
 {
@@ -23,7 +25,7 @@ namespace PmEngine.Core.Tests
             var scope = provider.CreateScope();
 
             provider = scope.ServiceProvider;
-            var engine = provider.GetRequiredService<PmEngine>();
+            var engine = provider.GetRequiredService<PmMigrationInitializer>();
             engine.Configure(provider).Wait();
 
             if (afterInit is not null)
@@ -32,20 +34,17 @@ namespace PmEngine.Core.Tests
             return provider;
         }
 
-        public static async Task<IUserSession> CreateNewUser(IServiceProvider services)
+        public static async Task<UserSession> CreateNewUser(IServiceProvider services)
         {
             var gameSession = services.GetRequiredService<ServerSession>();
-            var user = await services.InContext(async (context) =>
-            {
-                var usr = new UserEntity();
-                usr.RegistrationDate = DateTime.Now;
-                usr.LastOnlineDate = DateTime.Now;
-                context.Add(usr);
-                context.SaveChanges();
-                return usr;
-            });
+            using var ctx = new PMEContext(gameSession.Config);
+            var user = new UserEntity();
+            user.RegistrationDate = DateTime.Now;
+            user.LastOnlineDate = DateTime.Now;
+            ctx.Add(user);
+            ctx.SaveChanges();
 
-            return await gameSession.GetUserSession(user.Id);
+            return await gameSession.GetUserSession(user.Id).ConfigureAwait(false);
         }
     }
 }

@@ -2,7 +2,7 @@
 using PmEngine.Core.Interfaces.Events;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
-using PmEngine.Core.Actions;
+using PmEngine.Core.SessionElements;
 
 namespace PmEngine.Core
 {
@@ -10,17 +10,19 @@ namespace PmEngine.Core
     /// Основной процесс. <br/>
     /// Тут производятся основные функции для работы с действиями пользователей
     /// </summary>
-    public class EngineProcessor : IEngineProcessor
+    public class ActionProcessor : IActionProcessor
     {
-        private ILogger<EngineProcessor> _logger;
+        private ILogger<ActionProcessor> _logger;
         private IServiceProvider _services;
-        private PmEngine _config;
+        private PmConfig _configuration;
+        private Dictionary<Type, IAction> _actions;
 
-        public EngineProcessor(IServiceProvider services, ILogger<EngineProcessor> logger, PmEngine config)
+        public ActionProcessor(IServiceProvider services, ILogger<ActionProcessor> logger, PmConfig config)
         {
             _logger = logger;
             _services = services;
-            _config = config;
+            _configuration = config;
+            _actions = _services.GetServices<IAction>().ToDictionary(a => a.GetType(), a => a);
         }
 
         /// <summary>
@@ -28,7 +30,7 @@ namespace PmEngine.Core
         /// </summary>
         /// <param name="action">Действие</param>
         /// <param name="userSession"></param>
-        public async Task ActionProcess(ActionWrapper action, IUserSession userSession)
+        public async Task ActionProcess(ActionWrapper action, UserSession userSession)
         {
             try
             {
@@ -39,15 +41,9 @@ namespace PmEngine.Core
                 userSession.CurrentAction = action;
                 userSession.InputAction = null;
 
-                await MakeEvent<IActionProcessBeforeEventHandler>((handler) => handler.Handle(userSession, action));
-
+                await MakeEvent<IActionProcessBeforeEventHandler>(async (handler) => await handler.Handle(userSession, action).ConfigureAwait(false)).ConfigureAwait(false);
                 INextActionsMarkup? result = null;
-
                 IAction? iaction = null;
-
-                await MakeEvent<IMakeActionBeforeEventHandler>((handler) => handler.Handle(userSession, action));
-
-
                 if (action.ActionType is null)
                 {
                     var at = GetActionType(action.ActionTypeName);
@@ -57,23 +53,26 @@ namespace PmEngine.Core
                     else
                         action.ActionType = at;
                 }
-
-                if (action.ActionType.GetInterface("IAction") == null)
-                    throw new Exception(action.ActionType + " не реализует интерфейс IAction.");
                 else
                 {
-                    iaction = (IAction?)Activator.CreateInstance(action.ActionType);
+                    if (action.ActionType.GetInterface("IAction") == null)
+                        throw new Exception(action.ActionType + " not implement IAction.");
+                    else
+                    {
+                        if (!_actions.TryGetValue(action.ActionType, out iaction))
+                            throw new Exception("Указанный Action не зарегистрирован в качестве сервиса");
 
-                    if (iaction is null)
-                        throw new Exception("Не удалось создать экшн " + action.ActionType);
+                        if (iaction is null)
+                            throw new Exception("Не удалось создать экшн " + action.ActionType);
 
-                    result = await iaction.DoAction(action, userSession);
+                        result = await iaction.DoAction(action, userSession).ConfigureAwait(false);
+                    }
                 }
 
                 if (result is not null && result.GetNextActions().Any())
                     userSession.NextActions = result;
 
-                await MakeEvent<IActionProcessAfterEventHandler>((handler) => handler.Handle(userSession, action));
+                await MakeEvent<IActionProcessAfterEventHandler>(async (handler) => await handler.Handle(userSession, action).ConfigureAwait(false)).ConfigureAwait(false);
 
                 var output = userSession.OutputContent + action.ActionText;
 
@@ -82,17 +81,18 @@ namespace PmEngine.Core
 
                 int msgId = -1;
                 if (!String.IsNullOrEmpty(output) || userSession.Media is not null && userSession.Media.Any())
-                    msgId = await userSession.Output.ShowContent(output, result?.NumeredDuplicates(), userSession.Media, result?.Arguments);
+                    msgId = await userSession.Output.ShowContent(output, result?.NumeredDuplicates(), userSession.Media, result?.Arguments).ConfigureAwait(false);
 
                 action.Arguments.Set("messageId", msgId);
 
                 if (iaction is not null)
-                    await iaction.AfterAction(action, userSession);
+                    await iaction.AfterAction(action, userSession).ConfigureAwait(false);
 
-                await MakeEvent<IMakeActionAfterEventHandler>((handler) => handler.Handle(userSession, action));
+                await userSession.MarkOnline().ConfigureAwait(false);
+                await MakeEvent<IActionProcessAfterOutputEventHandler>(async (handler) => await handler.Handle(userSession, action).ConfigureAwait(false)).ConfigureAwait(false);
 
-                await userSession.MarkOnline();
-                await MakeEvent<IActionProcessAfterOutputEventHandler>((handler) => handler.Handle(userSession, action));
+                if (_configuration.EnableStateless)
+                    await userSession.SaveState().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -102,10 +102,10 @@ namespace PmEngine.Core
                 userSession.OutputContent = "";
                 userSession.Media = null;
 
-                if (action.ActionType == (_config.Properties.ExceptionAction ?? typeof(ExceptionAction)))
+                if (action.DisplayName == "ExceptionAction")
                     _logger.LogCritical($"{userSession.Id}: Ошибка исполнения {action}: {ex}", cachedData);
                 else
-                    await ActionProcess(new ActionWrapper("ExceptionAction", _config.Properties.ExceptionAction ?? typeof(ExceptionAction), args), userSession);
+                    await ActionProcess(new ActionWrapper("ExceptionAction", _configuration.ExceptionAction, args), userSession).ConfigureAwait(false);
             }
             finally
             {
@@ -121,12 +121,12 @@ namespace PmEngine.Core
         /// <param name="action">Экшн</param>
         /// <returns>Результат выполнения</returns>
         /// <exception cref="Exception">Ошибки при инициализации/выполнени экшена</exception>
-        public async Task<INextActionsMarkup?> MakeAction(ActionWrapper action, IUserSession user)
+        public async Task<INextActionsMarkup?> MakeAction(ActionWrapper action, UserSession user)
         {
             _logger.LogInformation($"User ({user}): MakeAction {action.DisplayName} ({action.ActionType})");
             INextActionsMarkup? result = null;
 
-            await MakeEvent<IMakeActionBeforeEventHandler>((handler) => handler.Handle(user, action));
+            await MakeEvent<IMakeActionBeforeEventHandler>(async (handler) => await handler.Handle(user, action).ConfigureAwait(false)).ConfigureAwait(false);
 
             if (action.ActionType is null)
                 return action.NextActions;
@@ -139,10 +139,10 @@ namespace PmEngine.Core
             if (act is null)
                 throw new Exception("Не удалось создать экшн " + action.ActionType);
 
-            result = await act.DoAction(action, user);
-            await act.AfterAction(action, user);
+            result = await act.DoAction(action, user).ConfigureAwait(false);
+            await act.AfterAction(action, user).ConfigureAwait(false);
 
-            await MakeEvent<IMakeActionAfterEventHandler>((handler) => handler.Handle(user, action));
+            await MakeEvent<IMakeActionAfterEventHandler>(async (handler) => await handler.Handle(user, action).ConfigureAwait(false)).ConfigureAwait(false);
 
             return result;
         }
@@ -173,18 +173,40 @@ namespace PmEngine.Core
         /// <returns></returns>
         public async Task MakeEvent<T>(Func<T, Task> evnt) where T : IEventHandler
         {
-            var handlers = _services.GetServices<IEventHandler>().Where(s => s is T).Select(s => (T)s);
+            _logger.LogInformation($"Make event {typeof(T)}");
+            var handlers = _services.GetServices<IEventHandler>().Where(s => s is T).Select(s => (T)s).ToArray();
 
             foreach (var handler in handlers)
-                await evnt(handler);
+            {
+                try
+                {
+                    _logger.LogInformation($"Handle event {typeof(T)} -- {handler.GetType()}");
+                    await evnt(handler).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("Error handling {t} -- {type}: {ex}", typeof(T), handler.GetType(), ex);
+                }
+            }
         }
 
         public void MakeEventSync<T>(Action<T> evnt) where T : IEventHandler
         {
-            var handlers = _services.GetServices<IEventHandler>().Where(s => s is T).Select(s => (T)s);
+            _logger.LogInformation($"Make event {typeof(T)}");
+            var handlers = _services.GetServices<IEventHandler>().Where(s => s is T).Select(s => (T)s).ToArray();
 
             foreach (var handler in handlers)
-                evnt(handler);
+            {
+                try
+                {
+                    _logger.LogInformation($"Handle event {typeof(T)} -- {handler.GetType()}");
+                    evnt(handler);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("Error handling {t} -- {type}: {ex}", typeof(T), handler.GetType(), ex);
+                }
+            }
         }
     }
 }

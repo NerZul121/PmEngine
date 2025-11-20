@@ -1,8 +1,10 @@
-﻿namespace PmEngine.Core.Interfaces
+﻿using PmEngine.Core.SessionElements;
+
+namespace PmEngine.Core.Interfaces
 {
     public interface IOutputManagerFactory
     {
-        public IOutputManager CreateForUser(IUserSession user);
+        public IOutputManager CreateForUser(UserSession user);
         public Type OutputType { get; }
     }
 }

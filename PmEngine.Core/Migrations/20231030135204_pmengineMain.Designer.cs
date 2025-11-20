@@ -11,7 +11,7 @@ using PmEngine.Core.BaseClasses;
 
 namespace PmEngine.Core.Migrations
 {
-    [DbContext(typeof(BaseContext))]
+    [DbContext(typeof(PMEContext))]
     [Migration("20231030135204_pmengineMain")]
     partial class pmengineMain
     {

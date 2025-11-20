@@ -1,4 +1,6 @@
-﻿namespace PmEngine.Core.Interfaces.Events
+﻿using PmEngine.Core.SessionElements;
+
+namespace PmEngine.Core.Interfaces.Events
 {
     /// <summary>
     /// События выполнения команды пользователем
@@ -10,6 +12,6 @@
         /// </summary>
         /// <param name="text">Текст команды</param>
         /// <param name="user">ID пользователя</param>
-        public Task Handle(string text, IUserSession user);
+        public Task Handle(string text, UserSession user);
     }
 }

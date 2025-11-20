@@ -1,7 +1,6 @@
-﻿using PmEngine.Core.Interfaces;
-using PmEngine.Core.Enums;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using PmEngine.Core.SessionElements;
 
 namespace PmEngine.Core.Daemons
 {
@@ -19,36 +18,34 @@ namespace PmEngine.Core.Daemons
         /// </summary>
         public override Task Work()
         {
-            var users = _services.GetRequiredService<ServerSession>().GetAllSessions().Where(v => v.CachedData.UserType != (int)UserType.Techincal && v.CachedData.UserType != (int)UserType.Banned).ToList();
+            var users = _services.GetRequiredService<ServerSession>().GetAllSessions().ToArray();
+            var tasks = new List<Task>();
 
             foreach (var user in users)
             {
-                Task.Factory.StartNew(async () =>
+                tasks.Add(Task.Factory.StartNew(async () =>
                 {
                     try
                     {
-                        await Process(user);
+                        await Process(user).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex.ToString());
                     }
-                });
+                }));
             }
 
-            return Task.CompletedTask;
+            return Task.WhenAll(tasks);
         }
 
         /// <summary>
         /// Процесс обработки пользователя.
         /// </summary>
         /// <param name="userSession"></param>
-        private async Task Process(IUserSession userSession)
+        private async Task Process(UserSession userSession)
         {
-            if (userSession.CachedData.UserType == (int)UserType.Banned)
-                return;
-
-            if (!await IsOnline(userSession))
+            if (!await IsOnline(userSession).ConfigureAwait(false))
                 return;
         }
 
@@ -57,7 +54,7 @@ namespace PmEngine.Core.Daemons
         /// </summary>
         /// <param name="userSession">Сессия пользователя</param>
         /// <returns></returns>
-        public async Task<bool> IsOnline(IUserSession userSession)
+        public async Task<bool> IsOnline(UserSession userSession)
         {
             if (userSession is null)
                 return false;
@@ -65,10 +62,10 @@ namespace PmEngine.Core.Daemons
             if ((DateTime.Now - userSession.SessionCreateTime).TotalSeconds < 5)
                 return true;
 
-            if (userSession.CachedData.LastOnlineDate.AddMinutes(_services.GetRequiredService<PmEngine>().Properties.SessionLifeTime) > DateTime.Now)
+            if (userSession.CachedData.LastOnlineDate.AddMinutes(_services.GetRequiredService<PmConfig>().SessionLifeTime) > DateTime.Now)
                 return true;
 
-            await _services.GetRequiredService<ServerSession>().RemoveUserSession(userSession);
+            await _services.GetRequiredService<ServerSession>().RemoveUserSession(userSession).ConfigureAwait(false);
 
             return false;
         }

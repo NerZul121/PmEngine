@@ -21,7 +21,7 @@ namespace PmEngine.Core.SessionElements
         {
         }
 
-        public SessionData(IUserSession user)
+        public SessionData(UserSession user)
         {
             Actions = user.NextActions?.GetNextActions().Select(s => s.Select(a => new ActionWrapperSaveModel(a)));
             CurrentAction = user.CurrentAction is null ? null : new ActionWrapperSaveModel()

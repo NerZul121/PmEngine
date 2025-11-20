@@ -1,16 +1,11 @@
-﻿using PmEngine.Core.Entities.Base;
-
-namespace PmEngine.Core.Entities
+﻿namespace PmEngine.Core.Entities
 {
     /// <summary>
     /// User of this app
     /// </summary>
-    public class UserEntity : BaseEntity
+    public class UserEntity
     {
-        /// <summary>
-        /// Type of user
-        /// </summary>
-        public int UserType { get; set; } = (int)Enums.UserType.Standart;
+        public long Id { get; set; }
 
         /// <summary>
         /// Last online datetime
@@ -20,15 +15,15 @@ namespace PmEngine.Core.Entities
         /// <summary>
         /// Registration date
         /// </summary>
-        public DateTime RegistrationDate {  get; set; }
-
-        public string? SessionData { get; set; }
+        public DateTime RegistrationDate { get; set; }
 
         /// <summary>
-        /// User
+        /// Кеш сесиии
         /// </summary>
-        public UserEntity()
-        {
-        }
+        public string? SessionData { get; set; }
+
+        public virtual List<UserPermissionEntity> Permissions { get; set; }
+
+        public virtual List<UserLocalEntity> Locals { get; set; }
     }
 }

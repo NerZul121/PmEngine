@@ -3,6 +3,7 @@ using PmEngine.Core.Interfaces;
 using PmEngine.Core.Interfaces.Events;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
+using PmEngine.Core.SessionElements;
 
 namespace PmEngine.Core
 {
@@ -55,7 +56,7 @@ namespace PmEngine.Core
         /// <param name="user">Пользователь</param>
         /// <param name="ignoreRights">Игнорировать права</param>
         /// <returns>Выполнена/не выполнена</returns>
-        public async Task<bool> DoCommand(string text, IUserSession user, bool ignoreRights = false)
+        public async Task<bool> DoCommand(string text, UserSession user, bool ignoreRights = false)
         {
             var output = user.Output;
 
@@ -63,15 +64,15 @@ namespace PmEngine.Core
             {
                 var commandFirst = text.Split(' ').First().ToLower().Trim('/');
 
-                if (!Commands.ContainsKey(commandFirst) || (user.CachedData.UserType < Commands[commandFirst].UserType && !ignoreRights))
+                if (!Commands.ContainsKey(commandFirst) || (!ignoreRights && Commands[commandFirst].RequiredPermissions != null && Commands[commandFirst].RequiredPermissions.Count > 0 && !Commands[commandFirst].RequiredPermissions.IsSubsetOf(user.Permissions)))
                 {
-                    await output.ShowContent("Команда не найдена.");
+                    await output.ShowContent("Команда не найдена.").ConfigureAwait(false);
                     return false;
                 }
 
-                await _services.GetRequiredService<IEngineProcessor>().MakeEvent<IDoCommandEventHandler>(async (handler) => { await handler.Handle(text, user); });
+                await _services.GetRequiredService<IActionProcessor>().MakeEvent<IDoCommandEventHandler>(async (handler) => { await handler.Handle(text, user); }).ConfigureAwait(false);
 
-                return await Commands[commandFirst].DoCommand(text, user);
+                return await Commands[commandFirst].DoCommand(text, user).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

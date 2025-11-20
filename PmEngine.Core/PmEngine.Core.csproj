@@ -7,14 +7,14 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>PmEngine.Core</PackageId>
     <Icon>http://zzz-korp.3dn.ru/PmCore.png</Icon>
-    <Description>Движок для приложений, работающих в текстовом интерфейсе</Description>
+    <Description>Фреймворк для приложений, работающих в текстовом интерфейсе (чат-боты)</Description>
     <Authors>NerZul121</Authors>
     <Company>pmgames.studio</Company>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Title>Engine for text-based apps or chat-bots</Title>
+    <Title>Framework for text-based apps or chat-bots</Title>
     <RepositoryUrl>https://github.com/NerZul121/PmEngine</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>bot, chat</PackageTags>
+    <PackageTags>bot, chat, framweork, pm</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

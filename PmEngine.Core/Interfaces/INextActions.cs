@@ -35,7 +35,7 @@
         /// <returns></returns>
         public INextActionsMarkup NumeredDuplicates()
         {
-            if (!EngineProperties.NumerateDuplicates)
+            if (!PmConfig.NumerateDuplicates)
                 return this;
 
             var actions = GetFloatNextActions();

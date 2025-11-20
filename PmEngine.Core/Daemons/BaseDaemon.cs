@@ -7,7 +7,7 @@ namespace PmEngine.Core.Daemons
     {
         protected IServiceProvider _services;
         protected ILogger _logger;
-        public int DelayInSec { get; set; } = 10;
+        public int DelayInSec { get; set; } = 1;
         public bool IsWork { get; set; } = true;
         public CancellationToken CancellationToken { get; set; }
         public string ProcessId { get; set; } = Guid.NewGuid().ToString();
@@ -38,19 +38,17 @@ namespace PmEngine.Core.Daemons
                 {
                     try
                     {
-                        await Work();
+                        await Work().ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError($"{GetType().FullName}: {ex}");
                     }
 
-                    await Task.Delay(DelayInSec * 1000, CancellationToken);
+                    await Task.Delay(DelayInSec * 1000, CancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
-                    // Безопасный выход из цикла в случае отмены CanellationToken
-
                     if (ex is TaskCanceledException)
                         break;
 

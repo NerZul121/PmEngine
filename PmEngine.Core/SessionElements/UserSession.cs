@@ -5,8 +5,7 @@ using PmEngine.Core.BaseClasses;
 using PmEngine.Core.Entities;
 using PmEngine.Core.Extensions;
 using PmEngine.Core.Interfaces;
-using PmEngine.Core.Interfaces.Events;
-using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using System.Text.Json;
 
 namespace PmEngine.Core.SessionElements
@@ -14,31 +13,27 @@ namespace PmEngine.Core.SessionElements
     /// <summary>
     /// Сессия пользователя
     /// </summary>
-    public class UserSession : IUserSession
+    public class UserSession : IDisposable
     {
         public IOutputManager? DefaultOutput { get; set; }
         public ILogger Logger { get; set; }
-        public PmEngine Engine
-        {
-            get
-            {
-                if (_engine is null)
-                    _engine = Services.GetRequiredService<PmEngine>();
 
-                return _engine;
-            }
+        public async Task SaveState()
+        {
+            using var context = new PMEContext(Services.GetRequiredService<PmConfig>(), Services);
+            var userData = Reload(context);
+            userData.SessionData = JsonSerializer.Serialize(new SessionData(this));
+            await context.SaveChangesAsync().ConfigureAwait(false);
         }
 
         internal protected List<IOutputManager> OutputManagersCache { get; set; } = [];
-
-        private PmEngine? _engine;
 
         public Arguments LocalStore { get; } = new();
 
         /// <summary>
         /// Сервисы в скопе пользователя
         /// </summary>
-        public IServiceProvider Services { get; set; }
+        public IServiceProvider Services { get; private set; }
 
         /// <summary>
         /// Время создания сессии
@@ -64,55 +59,23 @@ namespace PmEngine.Core.SessionElements
         public ActionWrapper? InputAction
         {
             get { return _inputAction; }
-            set
-            {
-                _inputAction = value;
-
-                if (Engine.Properties.EnableStateless)
-                {
-                    Task.Run(async () =>
-                    {
-                        try
-                        {
-                            await Services.GetRequiredService<IContextHelper>().InContext(async (context) =>
-                            {
-                                var userData = Reload(context);
-                                userData.SessionData = JsonSerializer.Serialize(new SessionData(this));
-                                await context.SaveChangesAsync();
-                            });
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.LogError(ex, $"Ошибка сохранения SessionData для пользователя {Id}");
-                        }
-                    });
-                }
-            }
+            set { _inputAction = value; }
         }
 
-        /// <summary>
-        /// Информация о пользователе из БД. Загружается при каждом (!) вызове. Если нужно вызвать более одного раза, считайте это в отдельную переменную и используйте её или CachedData.
-        /// Пример использования:
-        /// var user = userSession.Data;
-        /// if(user.CurrentHP + user.CurrentMP + user.Level + user.CurrentExp > 0) ...
-        /// </summary>
-        public UserEntity Data
+        public Task ActionProcess(ActionWrapper actionWrapper)
         {
-            get
-            {
-                Services.InContextSync((context) =>
-                {
-                    _cache = context.Set<UserEntity>().AsNoTracking().First(u => u.Id == Id);
-                });
+            return Services.GetRequiredService<IActionProcessor>().ActionProcess(actionWrapper, this);
+        }
 
-                return _cache;
-            }
+        public Task<INextActionsMarkup?> MakeAction(ActionWrapper actionWrapper)
+        {
+            return Services.GetRequiredService<IActionProcessor>().MakeAction(actionWrapper, this);
         }
 
         /// <summary>
         /// Кешированная информация о пользователе
         /// </summary>
-        public UserEntity CachedData { get { if (_cache is null) _cache = Data; return _cache; } }
+        public UserEntity CachedData { get { return _cache; } }
 
         private ActionWrapper? _currentAction;
 
@@ -122,30 +85,7 @@ namespace PmEngine.Core.SessionElements
         public virtual ActionWrapper? CurrentAction
         {
             get { return _currentAction; }
-            set
-            {
-                _currentAction = value;
-
-                if (Engine.Properties.EnableStateless)
-                {
-                    Task.Run(async () =>
-                    {
-                        try
-                        {
-                            await Services.GetRequiredService<IContextHelper>().InContext(async (context) =>
-                            {
-                                var userData = Reload(context);
-                                userData.SessionData = JsonSerializer.Serialize(new SessionData(this));
-                                await context.SaveChangesAsync();
-                            });
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.LogError(ex, $"Ошибка сохранения SessionData для пользователя {Id}");
-                        }
-                    });
-                }
-            }
+            set { _currentAction = value; }
         }
 
         /// <summary>
@@ -154,38 +94,10 @@ namespace PmEngine.Core.SessionElements
         public virtual INextActionsMarkup? NextActions
         {
             get { return _nextActions; }
-            set
-            {
-                _nextActions = value;
-
-                if (Engine.Properties.EnableStateless)
-                {
-                    Task.Run(async () =>
-                    {
-                        try
-                        {
-                            await Services.GetRequiredService<IContextHelper>().InContext(async (context) =>
-                            {
-                                var userData = Reload(context);
-                                userData.SessionData = JsonSerializer.Serialize(new SessionData(this));
-                                await context.SaveChangesAsync();
-                            });
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.LogError(ex, $"Ошибка сохранения SessionData для пользователя {Id}");
-                        }
-                    });
-                }
-            }
+            set { _nextActions = value; }
         }
 
         private INextActionsMarkup? _nextActions;
-
-        /// <summary>
-        /// Временные переменные, подобно Cookies. Очищаются вместе с сессией.
-        /// </summary>
-        public ConcurrentDictionary<string, object> Locals { get; set; } = new();
 
         public string? OutputContent { get; set; }
 
@@ -195,28 +107,13 @@ namespace PmEngine.Core.SessionElements
         /// Сессия пользователя
         /// </summary>
         /// <param name="user">ID пользователя</param>
-        public UserSession(IServiceProvider services, UserEntity user, Action<IUserSession>? init = null)
+        public UserSession(IServiceProvider services, UserEntity user)
         {
             Services = services;
             Logger = Services.GetRequiredService<ILogger>();
-
+            Permissions = user.Permissions?.Select(s => s.Permission).ToHashSet() ?? [];
+            _cache = user;
             Id = user.Id;
-            _engine = services.GetRequiredService<PmEngine>();
-
-            if (init != null)
-                init(this);
-
-            if (Engine.Properties.EnableStateless && !string.IsNullOrEmpty(user.SessionData))
-            {
-                var sessionData = JsonSerializer.Deserialize<SessionData>(user.SessionData);
-                NextActions = sessionData.NextActions(services);
-                sessionData.CurrentAction = sessionData.CurrentAction;
-                sessionData.InputAction = sessionData.InputAction;
-            }
-            else
-                CurrentAction = new ActionWrapper("Initialization", Engine.Properties.InitializationAction, Engine.Properties.StartArguments);
-
-            services.GetRequiredService<IEngineProcessor>().MakeEventSync<IUserSesseionInitializeEventHandler>((handler) => handler.Handle(this));
         }
 
         /// <summary>
@@ -240,15 +137,17 @@ namespace PmEngine.Core.SessionElements
         public void SetLocal(string name, object? value)
         {
             Logger.LogInformation($"User{Id} - SetLocal {name}: {value}");
-
             LocalStore.Set(name, value);
         }
 
-        public UserEntity Reload(BaseContext context)
+        public UserEntity Reload(PMEContext context)
         {
-            _cache = context.Set<UserEntity>().First(u => u.Id == Id);
+            _cache = context.Set<UserEntity>().Include(d => d.Permissions).First(u => u.Id == Id);
+            Permissions = _cache.Permissions?.Select(s => s.Permission).ToHashSet() ?? [];
             return _cache;
         }
+
+        public HashSet<string> Permissions { get; private set; } = [];
 
         public IOutputManager Output { get { return DefaultOutput ?? throw new Exception("Output not setted."); } }
 
@@ -296,12 +195,10 @@ namespace PmEngine.Core.SessionElements
         /// </summary>
         public async Task MarkOnline()
         {
-            await Services.GetRequiredService<IContextHelper>().InContext(async (context) =>
-            {
-                var user = Reload(context);
-                user.LastOnlineDate = DateTime.Now;
-                await context.SaveChangesAsync();
-            });
+            using var ctx = new PMEContext(Services.GetRequiredService<PmConfig>(), Services);
+            var user = Reload(ctx);
+            user.LastOnlineDate = DateTime.Now;
+            await ctx.SaveChangesAsync().ConfigureAwait(false);
         }
     }
 }

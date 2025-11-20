@@ -12,6 +12,6 @@ namespace PmEngine.Core.Interfaces.Events
         /// </summary>
         /// <param name="session"></param>
         /// <returns></returns>
-        public void Handle(UserSession session);
+        public Task Handle(UserSession session);
     }
 }

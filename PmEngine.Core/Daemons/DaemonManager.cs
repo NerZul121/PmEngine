@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PmEngine.Core.Interfaces;
-using PmEngine.Core.SessionElements;
 
 namespace PmEngine.Core.Daemons
 {
@@ -28,8 +27,7 @@ namespace PmEngine.Core.Daemons
 
         /// <summary>
         /// Запускаем зарегистрированные фоновые процессы
-        /// </summary>eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
-        /// <param name="services">Сервис провайдер</param>
+        /// </summary>
         public void Configure()
         {
             var daemonsScope = _serviceProvider.CreateScope();

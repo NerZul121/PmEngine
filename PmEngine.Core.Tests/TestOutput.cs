@@ -1,13 +1,14 @@
 ﻿using PmEngine.Core.Interfaces;
+using PmEngine.Core.SessionElements;
 
 namespace PmEngine.Core.Tests
 {
     internal class TestCoreOutput : IOutputManager
     {
         private int _counter = 0;
-        private IUserSession _user;
+        private UserSession _user;
 
-        public TestCoreOutput(IUserSession user)
+        public TestCoreOutput(UserSession user)
         {
             _user = user;
         }
@@ -49,7 +50,7 @@ namespace PmEngine.Core.Tests
     {
         public Type OutputType => typeof(TestCoreOutput);
 
-        public IOutputManager CreateForUser(IUserSession user)
+        public IOutputManager CreateForUser(UserSession user)
         {
             return new TestCoreOutput(user);
         }

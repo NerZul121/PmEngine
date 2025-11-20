@@ -1,4 +1,6 @@
-﻿namespace PmEngine.Core.Interfaces.Events
+﻿using PmEngine.Core.SessionElements;
+
+namespace PmEngine.Core.Interfaces.Events
 {
     /// <summary>
     /// Событие начала выполнения ActionWrapper через MakeAction
@@ -11,7 +13,7 @@
         /// <param name="user">ID пользователя</param>
         /// <param name="action">действие</param>
         /// <returns></returns>
-        public Task Handle(IUserSession user, ActionWrapper action);
+        public Task Handle(UserSession user, ActionWrapper action);
     }
 
     /// <summary>
@@ -25,6 +27,6 @@
         /// <param name="user">ID пользователя</param>
         /// <param name="action">Действие</param>
         /// <returns></returns>
-        public Task Handle(IUserSession user, ActionWrapper action);
+        public Task Handle(UserSession user, ActionWrapper action);
     }
 }

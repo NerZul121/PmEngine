@@ -4,6 +4,7 @@ using PmEngine.Core.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using PmEngine.Core.Interfaces;
 using Microsoft.Extensions.Logging;
+using PmEngine.Core.BaseClasses;
 
 namespace PmEngine.Core.Tests
 {
@@ -37,18 +38,16 @@ namespace PmEngine.Core.Tests
             using var scope = provider.CreateScope();
 
             provider = scope.ServiceProvider;
-            var engine = provider.GetRequiredService<PmEngine>();
+            var engine = provider.GetRequiredService<PmMigrationInitializer>();
             engine.Configure(provider).Wait();
 
             UserEntity user = new();
-            provider.GetRequiredService<IContextHelper>().InContext(async (context) =>
-            {
-                user = new UserEntity();
-                var kakob = new AuthTwo();
-                context.Add(kakob);
-                context.Add(user);
-                await context.SaveChangesAsync();
-            }).Wait();
+            using var context = new PMEContext(provider.GetRequiredService<PmConfig>());
+            user = new UserEntity();
+            var kakob = new AuthTwo();
+            context.Add(kakob);
+            context.Add(user);
+            context.SaveChangesAsync().ConfigureAwait(false);
 
             var ps = provider.GetRequiredService<ServerSession>().GetUserSession(user.Id, null, typeof(TestCoreOutput)).Result;
             Console.WriteLine(ps.NextActions);

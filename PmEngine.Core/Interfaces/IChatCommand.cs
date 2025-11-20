@@ -1,4 +1,7 @@
-﻿namespace PmEngine.Core.Interfaces
+﻿using PmEngine.Core.SessionElements;
+using System.Collections.Generic;
+
+namespace PmEngine.Core.Interfaces
 {
     /// <summary>
     /// Интерфейс исполняемой пользователем команды
@@ -16,9 +19,9 @@
         public string Description { get; }
 
         /// <summary>
-        /// Тип юзера, которому доступна команда
+        /// Требуемые разрешения пользователя
         /// </summary>
-        public int UserType { get; }
+        public HashSet<string>? RequiredPermissions { get; }
 
         /// <summary>
         /// Действие выполнения команды
@@ -26,6 +29,6 @@
         /// <param name="text"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public Task<bool> DoCommand(string text, IUserSession user);
+        public Task<bool> DoCommand(string text, UserSession user);
     }
 }
