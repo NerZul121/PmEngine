@@ -9,7 +9,7 @@ namespace PmEngine.Core.Daemons
     /// </summary>
     public class UserDaemon : BaseDaemon
     {
-        public UserDaemon(ILogger logger, IServiceProvider services) : base(services, logger)
+        public UserDaemon(ILogger<UserDaemon> logger, IServiceProvider services) : base(services, logger)
         {
         }
 

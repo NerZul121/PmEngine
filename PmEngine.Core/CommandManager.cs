@@ -13,7 +13,7 @@ namespace PmEngine.Core
     /// </summary>
     public class CommandManager
     {
-        private ILogger _logger;
+        private ILogger<CommandManager> _logger;
         private IServiceProvider _services;
 
         /// <summary>
@@ -21,7 +21,7 @@ namespace PmEngine.Core
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="services"></param>
-        public CommandManager(ILogger logger, IServiceProvider services)
+        public CommandManager(ILogger<CommandManager> logger, IServiceProvider services)
         {
             _logger = logger;
             _services = services;

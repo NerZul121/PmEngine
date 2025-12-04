@@ -44,29 +44,46 @@ namespace PmEngine.Core
                 await MakeEvent<IActionProcessBeforeEventHandler>(async (handler) => await handler.Handle(userSession, action).ConfigureAwait(false)).ConfigureAwait(false);
                 INextActionsMarkup? result = null;
                 IAction? iaction = null;
+                
+                // Если ActionType не установлен, пытаемся найти его по ActionTypeName
                 if (action.ActionType is null)
                 {
+                    _logger.LogInformation($"ActionType is null, trying to resolve by ActionTypeName: {action.ActionTypeName}");
                     var at = GetActionType(action.ActionTypeName);
 
                     if (at is null)
+                    {
+                        // Тип не найден, используем NextActions из action
+                        _logger.LogWarning($"ActionType not found for ActionTypeName: {action.ActionTypeName}, using action.NextActions");
                         result = action.NextActions;
+                    }
                     else
+                    {
+                        // Тип найден, устанавливаем его и продолжаем выполнение
+                        _logger.LogInformation($"ActionType resolved: {at.FullName}");
                         action.ActionType = at;
+                    }
                 }
-                else
+                
+                // Выполняем действие, если ActionType установлен
+                if (action.ActionType is not null)
                 {
                     if (action.ActionType.GetInterface("IAction") == null)
                         throw new Exception(action.ActionType + " not implement IAction.");
-                    else
-                    {
-                        if (!_actions.TryGetValue(action.ActionType, out iaction))
-                            throw new Exception("Указанный Action не зарегистрирован в качестве сервиса");
+                    
+                    if (!_actions.TryGetValue(action.ActionType, out iaction))
+                        throw new Exception("Указанный Action не зарегистрирован в качестве сервиса");
 
-                        if (iaction is null)
-                            throw new Exception("Не удалось создать экшн " + action.ActionType);
+                    if (iaction is null)
+                        throw new Exception("Не удалось создать экшн " + action.ActionType);
 
-                        result = await iaction.DoAction(action, userSession).ConfigureAwait(false);
-                    }
+                    _logger.LogInformation($"Executing action: {action.ActionType.FullName}");
+                    result = await iaction.DoAction(action, userSession).ConfigureAwait(false);
+                    _logger.LogInformation($"Action executed, result: {(result != null ? "has result" : "null")}");
+                }
+                else
+                {
+                    _logger.LogWarning($"ActionType is still null after resolution attempt, action will not be executed");
                 }
 
                 if (result is not null && result.GetNextActions().Any())
@@ -155,12 +172,34 @@ namespace PmEngine.Core
         public Type? GetActionType(string? actionName)
         {
             if (string.IsNullOrEmpty(actionName))
+            {
+                _logger.LogWarning("GetActionType called with null or empty actionName");
                 return null;
+            }
 
-            Type? action = null;
-
+            _logger.LogInformation($"GetActionType: searching for action with name: {actionName}");
+            
+            var allActions = _services.GetServices<IAction>().ToList();
+            _logger.LogInformation($"GetActionType: found {allActions.Count} registered IAction services");
+            
+            var action = allActions.FirstOrDefault(a => a.GetType().FullName == actionName)?.GetType();
+            
             if (action is null)
-                action = _services.GetServices<IAction>().FirstOrDefault(a => a.GetType().FullName == actionName)?.GetType();
+            {
+                // Попробуем найти по имени без полного пути
+                action = allActions.FirstOrDefault(a => a.GetType().Name == actionName)?.GetType();
+                if (action is not null)
+                    _logger.LogInformation($"GetActionType: found by Name (not FullName): {action.FullName}");
+            }
+            
+            if (action is null)
+            {
+                _logger.LogWarning($"GetActionType: action not found for name: {actionName}. Available actions: {string.Join(", ", allActions.Select(a => a.GetType().FullName))}");
+            }
+            else
+            {
+                _logger.LogInformation($"GetActionType: found action type: {action.FullName}");
+            }
 
             return action;
         }

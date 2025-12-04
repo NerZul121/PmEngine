@@ -21,7 +21,7 @@ namespace PmEngine.Core
         private PmConfig _config;
         public PmConfig Config { get { return _config; } }
 
-        public ServerSession(IServiceProvider services, ILogger logger, PmConfig config)
+        public ServerSession(IServiceProvider services, ILogger<ServerSession> logger, PmConfig config)
         {
             _logger = logger;
             _services = services;
@@ -62,29 +62,50 @@ namespace PmEngine.Core
                     throw new Exception("User with ID " + userId + " not found.");
 
                 session = new UserSession(_services, usr);
+
+                if (outputType is not null)
+                    session.DefaultOutput = session.GetOutputOrCreate(outputType);
+
                 if (init != null)
                     init(session);
 
+                bool stateRestored = false;
                 if (_config.EnableStateless && !string.IsNullOrEmpty(session.CachedData.SessionData))
                 {
                     var sessionData = JsonSerializer.Deserialize<SessionData>(session.CachedData.SessionData);
-                    session.NextActions = sessionData.NextActions(_services);
-                    sessionData.CurrentAction = sessionData.CurrentAction;
-                    sessionData.InputAction = sessionData.InputAction;
+                    if (sessionData is not null)
+                    {
+                        session.NextActions = sessionData.NextActions(_services);
+                        session.CurrentAction = sessionData.CurrentAction?.Wrap(_services);
+                        session.InputAction = sessionData.InputAction?.Wrap(_services);
+                        stateRestored = true;
+                        _logger.LogInformation($"User {userId}: State restored from SessionData. NextActions: {session.NextActions != null}, CurrentAction: {session.CurrentAction?.DisplayName}, InputAction: {session.InputAction?.DisplayName}");
+                    }
                 }
                 else
                     session.CurrentAction = new ActionWrapper("Initialization", _config.InitializationAction, _config.StartArguments);
 
+                // Сохраняем состояние NextActions до вызова события, чтобы проверить, не затерли ли их
+                var nextActionsBeforeEvent = stateRestored ? session.NextActions : null;
+
                 await _services.GetRequiredService<IActionProcessor>().MakeEvent<IUserSesseionInitializeEventHandler>(async (handler) => await handler.Handle(session).ConfigureAwait(false)).ConfigureAwait(false);
+
+                // Проверяем, не были ли затерты NextActions обработчиком события
+                if (stateRestored && nextActionsBeforeEvent != null && session.NextActions == null)
+                {
+                    _logger.LogWarning($"User {userId}: NextActions were cleared by IUserSesseionInitializeEventHandler handler! Restoring them back.");
+                    session.NextActions = nextActionsBeforeEvent;
+                }
 
                 UserSessions[userId] = session;
 
-                if (_config.InitializeWithAction && (!_config.EnableStateless || String.IsNullOrEmpty(session.CachedData.SessionData)))
+                // Не вызываем ActionProcess если состояние было восстановлено из БД в stateless режиме
+                // Это предотвращает затирание NextActions, которые были восстановлены
+                if (_config.InitializeWithAction && !stateRestored)
                     await _services.GetRequiredService<IActionProcessor>().ActionProcess(session.CurrentAction, session).ConfigureAwait(false);
             }
-
-            if (outputType is not null)
-                session.GetOutputOrCreate(outputType);
+            else if (outputType is not null)
+                session.DefaultOutput = session.GetOutputOrCreate(outputType);
 
             return session;
         }

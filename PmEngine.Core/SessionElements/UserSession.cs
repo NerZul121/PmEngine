@@ -109,11 +109,11 @@ namespace PmEngine.Core.SessionElements
         /// <param name="user">ID пользователя</param>
         public UserSession(IServiceProvider services, UserEntity user)
         {
+            Id = user.Id;
             Services = services;
-            Logger = Services.GetRequiredService<ILogger>();
+            Logger = Services.GetRequiredService<ILoggerFactory>().CreateLogger($"User-{Id}");
             Permissions = user.Permissions?.Select(s => s.Permission).ToHashSet() ?? [];
             _cache = user;
-            Id = user.Id;
         }
 
         /// <summary>
@@ -171,7 +171,11 @@ namespace PmEngine.Core.SessionElements
             {
                 var factory = Services.GetServices<IOutputManagerFactory>().FirstOrDefault(s => s.OutputType == outputType) ?? throw new Exception($"Cannot detected IOutputManagerFactory for {outputType}");
                 output = factory.CreateForUser(this);
-                DefaultOutput = output;
+
+                if (DefaultOutput is null)
+                    DefaultOutput = output;
+
+                OutputManagersCache.Add(output);
             }
 
             return output;
@@ -184,7 +188,11 @@ namespace PmEngine.Core.SessionElements
             {
                 var factory = Services.GetServices<IOutputManagerFactory>().FirstOrDefault(s => s.OutputType == typeof(T)) ?? throw new Exception($"Cannot detected IOutputManagerFactory for {typeof(T)}");
                 output = factory.CreateForUser(this);
-                DefaultOutput = output;
+
+                if (DefaultOutput is null)
+                    DefaultOutput = output;
+
+                OutputManagersCache.Add(output);
             }
 
             return (T)output;
