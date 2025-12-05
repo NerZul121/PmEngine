@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PmEngine.Core.BaseClasses;
@@ -11,13 +12,15 @@ using PmEngine.Core.BaseClasses;
 namespace PmEngine.Core.Migrations
 {
     [DbContext(typeof(PMEContext))]
-    partial class BaseContextModelSnapshot : ModelSnapshot
+    [Migration("20251205195029_main")]
+    partial class main
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.10")
+                .HasAnnotation("ProductVersion", "9.0.11")
                 .HasAnnotation("Proxies:ChangeTracking", false)
                 .HasAnnotation("Proxies:CheckEquality", false)
                 .HasAnnotation("Proxies:LazyLoading", true)
@@ -42,12 +45,9 @@ namespace PmEngine.Core.Migrations
                     b.Property<string>("SessionData")
                         .HasColumnType("text");
 
-                    b.Property<int>("UserType")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
-                    b.ToTable("UserEntity");
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("PmEngine.Core.Entities.UserLocalEntity", b =>
@@ -66,18 +66,49 @@ namespace PmEngine.Core.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserLocalEntity");
+                    b.ToTable("UserLocals");
+                });
+
+            modelBuilder.Entity("PmEngine.Core.Entities.UserPermissionEntity", b =>
+                {
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Permission")
+                        .HasColumnType("text");
+
+                    b.HasKey("UserId", "Permission");
+
+                    b.ToTable("UserPermissions");
                 });
 
             modelBuilder.Entity("PmEngine.Core.Entities.UserLocalEntity", b =>
                 {
                     b.HasOne("PmEngine.Core.Entities.UserEntity", "Owner")
-                        .WithMany()
+                        .WithMany("Locals")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("PmEngine.Core.Entities.UserPermissionEntity", b =>
+                {
+                    b.HasOne("PmEngine.Core.Entities.UserEntity", "User")
+                        .WithMany("Permissions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("PmEngine.Core.Entities.UserEntity", b =>
+                {
+                    b.Navigation("Locals");
+
+                    b.Navigation("Permissions");
                 });
 #pragma warning restore 612, 618
         }
